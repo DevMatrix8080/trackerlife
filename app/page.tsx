@@ -6,20 +6,23 @@ import History from '@/components/History';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Drop, History as HistoryIcon, Logout } from '@/components/Icons';
 import { Data, ls, loadData, today } from '@/lib/store';
-import { logout, onUser, pull, push } from '@/lib/cloud';
+import { logout, onUser, pull, pullFoods, push } from '@/lib/cloud';
+import type { Preset } from '@/lib/foods';
 import { vt } from '@/lib/motion';
 
 export default function Page() {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<string | null>(null);
   const [data, setData] = useState<Data | null>(null);
+  const [foods, setFoods] = useState<Preset[]>([]);
   const [date, setDate] = useState(today());
   const [tab, setTab] = useState<'today' | 'history'>('today');
 
   useEffect(() => onUser(u => { setUser(u); setReady(true); }), []);
   useEffect(() => {
-    setData(null);
+    setData(null); setFoods([]);
     if (!user) return;
+    pullFoods().then(setFoods, () => setFoods(ls.get<Preset[]>('foods', [])));
     let alive = true;
     const local = loadData(user); // cache locale: offline o prima sincronizzazione
     pull().then(
@@ -64,7 +67,7 @@ export default function Page() {
       </nav>
 
       {tab === 'today'
-        ? <Today data={data} date={date} setDate={setDate} update={update} />
+        ? <Today foods={foods} data={data} date={date} setDate={setDate} update={update} />
         : <History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} />}
     </div>
   );

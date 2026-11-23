@@ -19,3 +19,15 @@ create policy own_update on public.user_data for update to authenticated using (
 
 -- Gli anonimi non toccano la tabella.
 revoke all on public.user_data from anon;
+
+-- Cibi personali: leggibili SOLO da utenti loggati, mai scrivibili dal client.
+-- I dati vanno caricati a mano con supabase-foods.sql (file locale, NON nel repo).
+create table if not exists public.foods (
+  id serial primary key,
+  name text not null,
+  kcal numeric not null, f numeric not null, c numeric not null, p numeric not null
+);
+alter table public.foods enable row level security;
+create policy foods_read on public.foods for select to authenticated using (true);
+revoke all on public.foods from anon;
+revoke insert, update, delete on public.foods from authenticated;

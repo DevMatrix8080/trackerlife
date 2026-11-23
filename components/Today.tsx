@@ -1,15 +1,16 @@
 'use client';
 import { Data, Day, Food, emptyDay, today, waterGoal } from '@/lib/store';
 import { vt } from '@/lib/motion';
+import type { Preset } from '@/lib/foods';
 import Water from './Water';
 import Nutrition from './Nutrition';
 import FoodAdd from './FoodAdd';
 import FoodTable from './FoodTable';
 import { ChevL, ChevR, Lock } from './Icons';
 
-type Props = { data: Data; date: string; setDate: (d: string) => void; update: (fn: (d: Data) => void) => void };
+type Props = { foods: Preset[]; data: Data; date: string; setDate: (d: string) => void; update: (fn: (d: Data) => void) => void };
 
-export default function Today({ data, date, setDate, update }: Props) {
+export default function Today({ foods, data, date, setDate, update }: Props) {
   const day: Day = data.days[date] ?? emptyDay();
   const closed = !!day.closed;
   const edit = (fn: (d: Day) => void) => update(x => fn((x.days[date] ??= emptyDay())));
@@ -44,7 +45,7 @@ export default function Today({ data, date, setDate, update }: Props) {
           <Nutrition foods={day.foods} kgoal={data.kgoal} fmax={data.fmax} update={update} />
         </div>
         <div className="col">
-          <fieldset disabled={closed}><FoodAdd onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
+          <fieldset disabled={closed}><FoodAdd foods={foods} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
           <FoodTable foods={day.foods} fmax={data.fmax} closed={closed}
             onRemove={i => edit(d => { d.foods.splice(i, 1); })}
             onFinish={() => edit(d => { d.closed = true; })}

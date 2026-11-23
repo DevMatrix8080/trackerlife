@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Data } from './store';
+import type { Preset } from './foods';
 import { PW_MIN, pwStrong } from './password';
 
 // Config Supabase: URL e anon key sono pubbliche per design, la sicurezza sta nelle policy RLS (supabase.sql).
@@ -40,7 +41,7 @@ export const onUser = (cb: (u: string | null) => void) => {
 
 // Al logout si cancellano cache dati e residui del vecchio login locale: su un dispositivo condiviso non resta nulla.
 export const logout = () => {
-  try { Object.keys(localStorage).filter(k => /^(data:|users$|session$|locks$)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch { /* storage bloccato */ }
+  try { Object.keys(localStorage).filter(k => /^(data:|foods$|users$|session$|locks$)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch { /* storage bloccato */ }
   return sb.auth.signOut();
 };
 
@@ -55,4 +56,12 @@ export const push = async (d: Data) => {
   if (!session) throw new Error('no session');
   const { error } = await sb.from('user_data').upsert({ id: session.user.id, d, updated_at: new Date().toISOString() });
   if (error) throw error;
+};
+
+/** Cibi personali: protetti da RLS, rispondono solo a utenti loggati. Cache locale per l'offline (cancellata al logout). */
+export const pullFoods = async (): Promise<Preset[]> => {
+  const { data, error } = await sb.from('foods').select('name,kcal,f,c,p').order('name');
+  if (error) throw error;
+  try { localStorage.setItem('foods', JSON.stringify(data)); } catch { /* storage bloccato */ }
+  return data as Preset[];
 };

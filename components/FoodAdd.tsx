@@ -16,10 +16,10 @@ function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
   );
 }
 
-export default function FoodAdd({ onAdd }: { onAdd: (f: Food) => void }) {
+export default function FoodAdd({ foods, onAdd }: { foods: Preset[]; onAdd: (f: Food) => void }) {
   const [q, setQ] = useState('');
   const [man, setMan] = useState({ name: '', kcal: '', p: '', c: '', f: '' });
-  const hits = searchFoods(q);
+  const hits = searchFoods(foods, q);
 
   function addManual() {
     if (!man.name.trim()) return;

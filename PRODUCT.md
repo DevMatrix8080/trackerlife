@@ -16,12 +16,12 @@ Tracciare ogni giorno l'acqua bevuta rispetto a un obiettivo (3 L nei giorni di 
 Un unico posto che unisce idratazione (con obiettivo legato all'allenamento e alla stagione) e nutrizione con controllo esplicito dei grassi e chiusura giornaliera, con account sincronizzato su Supabase.
 
 ## Operating Context
-Web app Next.js + React + TypeScript, export statico. Account e dati su Supabase (Auth + Postgres), cache in localStorage; config Supabase pubblica, nessun segreto nel repo. Vedi PROJECT.md. Lingua: italiano. Ricerca cibi in un elenco locale personale (lib/foods.ts).
+Web app Next.js + React + TypeScript, export statico. Account e dati su Supabase (Auth + Postgres), cache in localStorage; config Supabase pubblica, nessun segreto nel repo. Vedi PROJECT.md. Lingua: italiano. Ricerca cibi in un elenco personale privato su Supabase (visibile solo dopo il login).
 
 ## Capabilities and Constraints
 - Login con nome utente e password (Supabase, sync multi-dispositivo; password forte alla creazione).
 - Acqua con obiettivo dinamico, spunta allenamento, storico 7 giorni.
-- Cibi: ricerca nell'elenco personale o inserimento manuale; tabella con kcal, proteine, carboidrati, grassi e totali; limite grassi configurabile (default 60 g); obiettivo kcal configurabile (default 2500).
+- Cibi: ricerca nell'elenco personale privato o inserimento manuale; tabella con kcal, proteine, carboidrati, grassi e totali; limite grassi configurabile (default 60 g); obiettivo kcal configurabile (default 2500).
 - "Giornata finita" blocca la giornata; "Riapri" la sblocca.
 - Cronologia anni, mesi, giorni con medie.
 - Temi chiaro e scuro con interruttore manuale (richiesto).

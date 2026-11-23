@@ -20,20 +20,21 @@ Next.js 16 (`output: 'export'`, statico) · React 19 · TypeScript · Supabase (
 | `app/page.tsx` | Radice client. `onUser` (sessione Supabase) → `pull()` dati cloud (fallback cache locale) → stato `data`. `update(fn)` clona, salva in localStorage (cache) e fa `push()` su Supabase. Tab Giornata/Cronologia. Logout = `logout()` |
 | `app/globals.css` | Tutto lo stile. Variabili tema dark/light (`--bg --aqua --protein --carb --fat --ok`, pannelli `--p-*`). Animazioni, View Transitions, scroll-driven. In fondo: stile misuratore password (`.pwmeter`, `.pwbars`, `.pwlist`) |
 | `lib/store.ts` | Tipi `Food/Day/Data`, helper `ls` (localStorage), `today()`, `loadData(user)`, `waterGoal(date, train)`, `totals(foods)`. **Niente auth qui** |
-| `lib/cloud.ts` | Supabase: config (URL + anon key da incollare), `authenticate(nome, pw, signup)`, `onUser(cb)`, `logout()` (pulisce cache locale), `pull()`, `push(data)` |
+| `lib/cloud.ts` | Supabase: config (URL + anon key da incollare), `pullFoods()`, `authenticate(nome, pw, signup)`, `onUser(cb)`, `logout()` (pulisce cache locale), `pull()`, `push(data)` |
 | `lib/password.ts` | `PW_MIN=10`, `pwChecks`, `pwStrong` (≥10 car. + 3 requisiti su 4), `pwScore` (0-4) |
-| `lib/foods.ts` | Elenco cibi abituali (181, da Food_excel_it.csv: virgola decimale, separatore `;`; righe vuote scartate): valori per la PORZIONE nel nome; `searchFoods(q)` cerca per parole, senza accenti/maiuscole. Per aggiungerne uno: nuova riga in `RAW` [nome, kcal, grassi, carbo, proteine] |
+| `lib/foods.ts` | Solo tipo `Preset` e `searchFoods(foods, q)` (cerca per parole, senza accenti/maiuscole). **I dati NON sono nel repo**: stanno nella tabella Supabase `foods` (RLS: lettura solo utenti loggati, nessuna scrittura dal client). Caricati con `supabase-foods.sql`, file locale gitignored (183 cibi, valori per la PORZIONE nel nome) |
 | `lib/motion.ts` | `vt(fn)` = View Transition con fallback; `reduced()` = prefers-reduced-motion |
 | `components/Auth.tsx` | Form accedi / crea account, mostra/nascondi password, misuratore robustezza animato |
 | `components/Today.tsx` | Vista giorno: navigazione date, Water, Nutrition, FoodAdd, FoodTable; giorno `closed` blocca i campi |
 | `components/Water.tsx` | Acqua vs obiettivo, spunta allenamento, storico 7 gg, festeggia al superamento |
 | `components/Nutrition.tsx` | Totali kcal/macro vs `kgoal` e `fmax` (grassi) |
-| `components/FoodAdd.tsx` | Ricerca live nei cibi di `lib/foods.ts` (campo porzioni) o inserimento manuale |
+| `components/FoodAdd.tsx` | Ricerca live nei cibi caricati da Supabase dopo il login (`pullFoods`, campo porzioni) o inserimento manuale |
 | `components/FoodTable.tsx` | Tabella cibi, totali, "Giornata finita"/"Riapri" |
 | `components/History.tsx` | Cronologia anno → mese → giorno con medie |
 | `components/CountUp.tsx`, `Icons.tsx`, `ThemeToggle.tsx` | Numeri che scorrono, icone SVG, tema chiaro/scuro (salvato in localStorage `theme`) |
 | `scripts/csp.mjs` | Post-build: CSP in `<meta>` con hash SHA-256 degli script inline. `connect-src`: self, `*.supabase.co` |
-| `supabase.sql` | Tabella `user_data` + policy RLS (da eseguire nello SQL Editor) |
+| `supabase.sql` | Tabelle `user_data` e `foods` + policy RLS (da eseguire nello SQL Editor) |
+| `supabase-foods.sql` | **Locale, gitignored.** INSERT dei cibi personali. Rigenerabile dalle righe `RAW` di una vecchia versione di `lib/foods.ts` (git history) |
 | `PRODUCT.md` | Brief di prodotto/design (Impeccable) |
 
 ## Modello dati
@@ -49,7 +50,7 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 1. Nome utente `^[a-z0-9_.-]{3,20}$` → email finta `<nome>@mylife.app` → Supabase Auth email/password.
 2. **Creazione account**: password ≥10 caratteri + 3 requisiti su 4 (maiuscole+minuscole, numero, simbolo), non tutta uguale. Login: nessun minimo (non blocca chi ha già account).
 3. Login → `pull()`. Se il documento cloud non esiste, carica i dati locali del browser (migrazione). Offline → usa cache.
-4. Logout → cancella `data:*`, `users`, `session`, `locks` da localStorage e `signOut`.
+4. Logout → cancella `data:*`, `foods`, `users`, `session`, `locks` da localStorage e `signOut`.
 
 ## Sicurezza (cosa c'è)
 - Password mai nel codice: hash/rate-limit gestiti da Supabase Auth (rate limit integrato).
@@ -63,7 +64,8 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 2. SQL Editor → incolla `supabase.sql` → Run.
 3. Authentication → Sign In / Providers → Email: **disattiva "Confirm email"** (gli utenti hanno email finta), **Minimum password length = 10**, attiva "Prevent use of leaked passwords" se disponibile.
 4. Authentication → URL Configuration: Site URL = `https://<utente>.github.io/trackerlife`.
-5. Project Settings → API: copia **Project URL** e **anon public key** in `lib/cloud.ts` (riga `createClient(...)`). Mai la `service_role` key.
+5. SQL Editor → incolla `supabase-foods.sql` (tuo file locale) → Run: carica i cibi.
+6. Project Settings → API: copia **Project URL** e **anon public key** in `lib/cloud.ts` (riga `createClient(...)`). Mai la `service_role` key.
 
 ## Limiti noti / shortcut
 - `lib/cloud.ts` contiene ancora i segnaposto `INCOLLA_*` (URL e anon key) finché non si inserisce la config → senza di essa login/registrazione falliscono.
@@ -79,3 +81,4 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 5. **Password forte in creazione** con misuratore animato (`lib/password.ts`, `Auth.tsx`, CSS `.pw*`); logout pulisce cache; `supabase.sql` con RLS e validazione.
 6. Ricerca cibi: tolto Open Food Facts, ora elenco locale `lib/foods.ts` (nessuna chiamata esterna).
 7. Elenco cibi riallineato a `Food_excel_it.csv` (stessi valori del CSV precedente; nessun cibo vecchio rimasto).
+8. **Cibi nascosti al pubblico**: spostati da `lib/foods.ts` (bundle JS pubblico) a tabella Supabase `foods` con RLS; `.history/` e `supabase-foods.sql` in `.gitignore`.
