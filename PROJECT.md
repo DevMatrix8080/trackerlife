@@ -22,16 +22,17 @@ Next.js 16 (`output: 'export'`, statico) · React 19 · TypeScript · Supabase (
 | `lib/store.ts` | Tipi `Food/Day/Data`, helper `ls` (localStorage), `today()`, `loadData(user)`, `waterGoal(date, train)`, `totals(foods)`. **Niente auth qui** |
 | `lib/cloud.ts` | Supabase: config (URL + anon key da incollare), `authenticate(nome, pw, signup)`, `onUser(cb)`, `logout()` (pulisce cache locale), `pull()`, `push(data)` |
 | `lib/password.ts` | `PW_MIN=10`, `pwChecks`, `pwStrong` (≥10 car. + 3 requisiti su 4), `pwScore` (0-4) |
+| `lib/foods.ts` | Elenco cibi abituali (181, da Food_excel_it.csv: virgola decimale, separatore `;`; righe vuote scartate): valori per la PORZIONE nel nome; `searchFoods(q)` cerca per parole, senza accenti/maiuscole. Per aggiungerne uno: nuova riga in `RAW` [nome, kcal, grassi, carbo, proteine] |
 | `lib/motion.ts` | `vt(fn)` = View Transition con fallback; `reduced()` = prefers-reduced-motion |
 | `components/Auth.tsx` | Form accedi / crea account, mostra/nascondi password, misuratore robustezza animato |
 | `components/Today.tsx` | Vista giorno: navigazione date, Water, Nutrition, FoodAdd, FoodTable; giorno `closed` blocca i campi |
 | `components/Water.tsx` | Acqua vs obiettivo, spunta allenamento, storico 7 gg, festeggia al superamento |
 | `components/Nutrition.tsx` | Totali kcal/macro vs `kgoal` e `fmax` (grassi) |
-| `components/FoodAdd.tsx` | Ricerca Open Food Facts (per 100 g) o inserimento manuale |
+| `components/FoodAdd.tsx` | Ricerca live nei cibi di `lib/foods.ts` (campo porzioni) o inserimento manuale |
 | `components/FoodTable.tsx` | Tabella cibi, totali, "Giornata finita"/"Riapri" |
 | `components/History.tsx` | Cronologia anno → mese → giorno con medie |
 | `components/CountUp.tsx`, `Icons.tsx`, `ThemeToggle.tsx` | Numeri che scorrono, icone SVG, tema chiaro/scuro (salvato in localStorage `theme`) |
-| `scripts/csp.mjs` | Post-build: CSP in `<meta>` con hash SHA-256 degli script inline. `connect-src`: self, Open Food Facts, `*.googleapis.com` (Supabase) |
+| `scripts/csp.mjs` | Post-build: CSP in `<meta>` con hash SHA-256 degli script inline. `connect-src`: self, `*.supabase.co` |
 | `supabase.sql` | Tabella `user_data` + policy RLS (da eseguire nello SQL Editor) |
 | `PRODUCT.md` | Brief di prodotto/design (Impeccable) |
 
@@ -76,3 +77,5 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 3. Animazioni: View Transitions, CountUp, effetto liquido, scroll-driven.
 4. **Sync multi-dispositivo**: prima Firebase, poi sostituito da Supabase (`lib/cloud.ts`, `supabase.sql`); rimosso auth locale PBKDF2 da `store.ts`; CSP aperta a `*.supabase.co`.
 5. **Password forte in creazione** con misuratore animato (`lib/password.ts`, `Auth.tsx`, CSS `.pw*`); logout pulisce cache; `supabase.sql` con RLS e validazione.
+6. Ricerca cibi: tolto Open Food Facts, ora elenco locale `lib/foods.ts` (nessuna chiamata esterna).
+7. Elenco cibi riallineato a `Food_excel_it.csv` (stessi valori del CSV precedente; nessun cibo vecchio rimasto).
