@@ -6,6 +6,7 @@ import Water from './Water';
 import Nutrition from './Nutrition';
 import FoodAdd from './FoodAdd';
 import FoodTable from './FoodTable';
+import { proteinGoal } from '@/lib/tdee';
 import { ChevL, ChevR, Lock } from './Icons';
 
 type Props = { foods: Preset[]; data: Data; date: string; setDate: (d: string) => void; update: (fn: (d: Data) => void) => void };
@@ -42,7 +43,7 @@ export default function Today({ foods, data, date, setDate, update }: Props) {
       <div className="cols">
         <div className="col">
           <fieldset disabled={closed}><Water date={date} day={day} goal={goal} edit={edit} /></fieldset>
-          <Nutrition foods={day.foods} kgoal={data.kgoal} fmax={data.fmax} update={update} />
+          <Nutrition foods={day.foods} kgoal={data.kgoal} pgoal={data.profile && proteinGoal(data.profile)} fmax={data.fmax} update={update} />
         </div>
         <div className="col">
           <fieldset disabled={closed}><FoodAdd foods={foods} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>

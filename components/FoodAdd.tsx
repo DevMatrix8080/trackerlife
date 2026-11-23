@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Food } from '@/lib/store';
+import { Food, MEALS, Meal } from '@/lib/store';
 import { Plus, Search } from './Icons';
 import { Preset, searchFoods } from '@/lib/foods';
 
@@ -18,12 +18,13 @@ function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
 
 export default function FoodAdd({ foods, onAdd }: { foods: Preset[]; onAdd: (f: Food) => void }) {
   const [q, setQ] = useState('');
+  const [meal, setMeal] = useState<Meal>(() => { const h = new Date().getHours(); return h < 10 ? 'colazione' : h < 12 ? 'spuntino_m' : h < 15 ? 'pranzo' : h < 18 ? 'spuntino_p' : 'cena'; });
   const [man, setMan] = useState({ name: '', kcal: '', p: '', c: '', f: '' });
   const hits = searchFoods(foods, q);
 
   function addManual() {
     if (!man.name.trim()) return;
-    onAdd({ name: man.name.trim(), g: 0, kcal: +man.kcal || 0, p: +man.p || 0, c: +man.c || 0, f: +man.f || 0 });
+    onAdd({ meal, name: man.name.trim(), g: 0, kcal: +man.kcal || 0, p: +man.p || 0, c: +man.c || 0, f: +man.f || 0 });
     setMan({ name: '', kcal: '', p: '', c: '', f: '' });
   }
   const set = (k: keyof typeof man) => (e: React.ChangeEvent<HTMLInputElement>) => setMan({ ...man, [k]: e.target.value });
@@ -31,13 +32,16 @@ export default function FoodAdd({ foods, onAdd }: { foods: Preset[]; onAdd: (f: 
   return (
     <section className="card" aria-labelledby="h-food">
       <h2 id="h-food" style={{ marginBottom: 12 }}>Aggiungi cibo</h2>
+      <select className="input" style={{ marginBottom: 8 }} aria-label="Pasto" value={meal} onChange={e => setMeal(e.target.value as Meal)}>
+        {MEALS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+      </select>
       <div className="row">
         <input className="input grow" placeholder="Cerca: pizza, yogurt, petto di pollo…" aria-label="Cerca cibo" value={q} onChange={e => setQ(e.target.value)} />
         <span className="btn sq" aria-hidden><Search /></span>
       </div>
       <div className="muted" style={{ margin: '6px 0 0', fontSize: '.9rem' }}>I tuoi cibi, valori per la porzione indicata. Scegli le porzioni e premi +.</div>
       {q.trim() && !hits.length && <div className="muted" style={{ paddingTop: 10 }}>Nessun risultato: inseriscilo a mano qui sotto.</div>}
-      {hits.map(h => <Result key={h.name} h={h} onAdd={onAdd} />)}
+      {hits.map(h => <Result key={h.name} h={h} onAdd={f => onAdd({ ...f, meal })} />)}
 
       <details className="manual">
         <summary>Inserisci a mano</summary>

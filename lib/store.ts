@@ -1,6 +1,12 @@
-export type Food = { name: string; g: number; kcal: number; p: number; c: number; f: number };
+import type { Preset } from './foods';
+import type { Profile } from './tdee';
+
+export const MEALS = [['colazione', 'Colazione'], ['spuntino_m', 'Spuntino mattina'], ['pranzo', 'Pranzo'], ['spuntino_p', 'Spuntino pomeriggio'], ['cena', 'Cena']] as const;
+export type Meal = (typeof MEALS)[number][0];
+export type Food = { name: string; g: number; kcal: number; p: number; c: number; f: number; meal?: Meal };
 export type Day = { water: number; train: boolean; foods: Food[]; closed?: boolean };
-export type Data = { days: Record<string, Day>; kgoal: number; fmax: number };
+// vault: salt + prova ("ok" cifrato) per verificare la passphrase delle foto. Mai la passphrase.
+export type Data = { days: Record<string, Day>; kgoal: number; fmax: number; profile?: Profile; custom?: Preset[]; vault?: { salt: string; check: string } };
 
 export const ls = {
   get<T>(k: string, d: T): T {

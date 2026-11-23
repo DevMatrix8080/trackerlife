@@ -24,3 +24,6 @@ export const Logout = svg(<path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M15 8
 export const History = svg(<><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></>);
 export const Alert = svg(<path d="M12 4l9 16H3L12 4zM12 10v4M12 17.5v.01" />);
 export const Lock = svg(<><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>);
+export const Camera = svg(<><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></>);
+export const User = svg(<><circle cx="12" cy="8" r="4" /><path d="M4 20a8 8 0 0 1 16 0" /></>);
+export const List = svg(<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />);

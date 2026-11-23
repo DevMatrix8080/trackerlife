@@ -50,13 +50,13 @@ h2{font-size:1.75rem}
 .icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
 .icon-btn:hover{border-color:var(--aqua)}
 
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:1fr 1fr;background:var(--surface);
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);
   border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tab{min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   font:800 .95rem/1 var(--f-d);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .tab[aria-current="page"]{color:var(--aqua-text);box-shadow:inset 0 3px 0 var(--aqua)}
 @media(min-width:860px){
-  .tabs{position:static;display:inline-grid;grid-template-columns:auto auto;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:8px 0 16px}
+  .tabs{position:static;display:inline-grid;grid-auto-columns:auto;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:8px 0 16px}
   .tab{flex-direction:row;gap:8px;padding:0 20px;min-height:46px}
   .tab[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--aqua)}
   .app{padding-bottom:48px}
@@ -269,3 +269,32 @@ tr.click{transition:background .2s}
 .pwlist li.ok b{background:var(--ok);border-color:var(--ok);color:#06210f;transform:scale(1.15)}
 @keyframes pwpop{from{transform:scaleX(.2)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.pwmeter,.pwbars i,.pwlist b{transition:none;animation:none}}
+
+/* Percentuale acqua dentro la barra + frase motivante */
+.gpct{position:absolute;inset:0;z-index:1;display:grid;place-items:center;font-weight:800;font-size:1.25rem;color:var(--text);text-shadow:0 0 6px var(--bg)}
+.status{flex-wrap:wrap}
+.cheer{flex-basis:100%;font-weight:500;opacity:.8}
+
+/* ---- profilo, cibi, foto ---- */
+.form{display:grid;gap:12px;align-content:start}
+.stack{display:grid;gap:16px}
+.form label{display:grid;gap:4px;font-weight:600;color:var(--muted);font-size:.9rem}
+.form select.input{appearance:auto}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.result{display:grid;gap:4px;padding:12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.result b{color:var(--aqua-text)}
+.foodlist{max-height:60vh;overflow-y:auto;margin-top:8px}
+.tag{margin-left:8px;padding:1px 8px;border-radius:10px;background:var(--aqua);color:var(--on-accent);font-size:.75rem;font-weight:800}
+.hit .rm{color:var(--muted)}
+td.mealrow{text-align:left;padding-top:14px;font:800 .95rem/1 var(--f-d);text-transform:uppercase;letter-spacing:.08em;color:var(--p-muted);border-top:0}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.tile{position:relative;display:grid;gap:4px;font-size:.85rem;font-weight:600;cursor:pointer;border-radius:10px;padding:4px;border:2px solid transparent}
+.tile:has(input:focus-visible){outline:3px solid var(--aqua)}
+.tile.on{border-color:var(--aqua)}
+.tile img,.ph{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;background:var(--bg)}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.cmp figure{margin:0;display:grid;gap:6px;text-align:center;font-weight:700}
+.cmp img{width:100%;border-radius:10px}
+.tab{min-width:0;padding:0 2px}
+@media(max-width:859px){.tab{font-size:.75rem}}
+@media(min-width:860px){.tab{padding:0 20px}}

@@ -19,7 +19,7 @@ for (const file of pages('out')) {
     "default-src 'self'",
     `script-src 'self' ${[...hashes].join(' ')}`,
     "style-src 'self' 'unsafe-inline'", // gli style="" di React richiedono unsafe-inline (solo stili, mai script)
-    "img-src 'self' data:",
+    "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self' https://*.supabase.co",
     "object-src 'none'",

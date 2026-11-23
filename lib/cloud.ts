@@ -65,3 +65,23 @@ export const pullFoods = async (): Promise<Preset[]> => {
   try { localStorage.setItem('foods', JSON.stringify(data)); } catch { /* storage bloccato */ }
   return data as Preset[];
 };
+
+// Foto: sul server arriva solo testo cifrato (AES-256-GCM, vedi crypto.ts). RLS: ognuno vede solo le proprie.
+export const listPhotos = async () => {
+  const { data, error } = await sb.from('photos').select('id,day').order('day', { ascending: false });
+  if (error) throw error;
+  return data as { id: string; day: string }[];
+};
+export const getPhoto = async (id: string) => {
+  const { data, error } = await sb.from('photos').select('c').eq('id', id).single();
+  if (error) throw error;
+  return data.c as string;
+};
+export const addPhoto = async (day: string, c: string) => {
+  const { error } = await sb.from('photos').insert({ day, c });
+  if (error) throw error;
+};
+export const delPhotos = async (ids: string[]) => {
+  const { error } = await sb.from('photos').delete().in('id', ids);
+  if (error) throw error;
+};

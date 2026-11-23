@@ -12,6 +12,8 @@ export default function Water({ date, day, goal, edit }: Props) {
   const [floats, setFloats] = useState<{ id: number; ml: number }[]>([]);
   const [burst, setBurst] = useState(0);
   const done = day.water >= goal.ml;
+  const pct = Math.round(day.water / goal.ml * 100);
+  const cheer = pct >= 100 ? 'Grande, sei idratato!' : pct >= 75 ? 'Ultimo sforzo, ci sei quasi!' : pct >= 50 ? 'Metà fatta, continua così!' : pct >= 25 ? 'Buon inizio, un altro bicchiere?' : "Inizia con un bicchiere d'acqua!";
 
   // Festeggia solo quando si supera l'obiettivo sul giorno aperto, non cambiando giorno.
   const prev = useRef({ date, done });
@@ -46,6 +48,7 @@ export default function Water({ date, day, goal, edit }: Props) {
         <div className={'gauge' + (done ? ' ok' : '')} role="progressbar" aria-label="Acqua bevuta" aria-valuemin={0} aria-valuemax={goal.ml} aria-valuenow={Math.min(day.water, goal.ml)}
           style={{ ['--w' as string]: Math.min(100, day.water / goal.ml * 100) + '%', ['--tick' as string]: 250 / goal.ml * 100 + '%' }}>
           <i />
+          <b className="gpct" aria-hidden="true"><CountUp value={pct} />%</b>
         </div>
         {burst > 0 && (
           <div className="burst" key={burst} aria-hidden="true">
@@ -59,6 +62,7 @@ export default function Water({ date, day, goal, edit }: Props) {
 
       <div className={'status' + (done ? ' ok' : '')}>
         {done ? <><Check size={24} />Obiettivo raggiunto</> : <><Drop size={22} />Mancano {goal.ml - day.water} ml</>}
+        <span className="cheer">{cheer}</span>
       </div>
 
       <div className="qa">

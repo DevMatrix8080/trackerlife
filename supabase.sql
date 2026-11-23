@@ -37,3 +37,18 @@ grant usage on schema public to authenticated;
 grant select, insert, update on public.user_data to authenticated;
 grant select on public.foods to authenticated;
 grant usage, select on sequence public.foods_id_seq to authenticated;
+
+-- Foto progressi: il server vede solo testo cifrato (AES-256-GCM lato browser).
+create table if not exists public.photos (
+  id uuid primary key default gen_random_uuid(),
+  uid uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  day date not null,
+  c text not null check (length(c) < 2000000),
+  created_at timestamptz not null default now()
+);
+alter table public.photos enable row level security;
+create policy ph_select on public.photos for select to authenticated using (auth.uid() = uid);
+create policy ph_insert on public.photos for insert to authenticated with check (auth.uid() = uid);
+create policy ph_delete on public.photos for delete to authenticated using (auth.uid() = uid);
+revoke all on public.photos from anon;
+grant select, insert, delete on public.photos to authenticated;

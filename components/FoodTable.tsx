@@ -1,5 +1,5 @@
 'use client';
-import { Food, r1, totals } from '@/lib/store';
+import { Food, MEALS, r1, totals } from '@/lib/store';
 import { Check, X } from './Icons';
 
 type Props = { foods: Food[]; fmax: number; closed: boolean; onRemove: (i: number) => void; onFinish: () => void; onReopen: () => void };
@@ -15,14 +15,17 @@ export default function FoodTable({ foods, fmax, closed, onRemove, onFinish, onR
           <table>
             <thead><tr><th>Alimento</th><th>g</th><th>kcal</th><th>P</th><th>C</th><th>G</th><th><span className="sr">Rimuovi</span></th></tr></thead>
             <tbody>
-              {foods.map((f, i) => (
+              {[...MEALS, ['', 'Senza pasto'] as const].map(([m, label]) => {
+                const rows = foods.map((f, i) => ({ f, i })).filter(x => (x.f.meal ?? '') === m);
+                return rows.length ? [<tr key={'h' + m}><td className="mealrow" colSpan={7}>{label}</td></tr>, ...rows.map(({ f, i }) => (
                 <tr key={i} style={{ ['--r' as string]: Math.min(i, 12) }}>
                   <td className="name">{f.name}</td><td>{f.g || '—'}</td><td>{Math.round(f.kcal)}</td>
                   <td>{r1(f.p)}</td><td>{r1(f.c)}</td>
                   <td className={'f' + (f.kcal && f.f * 9 / f.kcal > 0.3 ? ' hi' : '')}>{r1(f.f)}</td>
                   <td><button className="rm" aria-label={`Rimuovi ${f.name}`} disabled={closed} onClick={() => onRemove(i)}><X size={18} /></button></td>
                 </tr>
-              ))}
+              ))] : null;
+              })}
             </tbody>
             <tfoot>
               <tr><td>Totale</td><td /><td>{Math.round(t.kcal)}</td><td>{r1(t.p)}</td><td>{r1(t.c)}</td>
