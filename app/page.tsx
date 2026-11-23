@@ -6,6 +6,7 @@ import History from '@/components/History';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Drop, History as HistoryIcon, Logout } from '@/components/Icons';
 import { Data, currentUser, ls, loadData, today } from '@/lib/store';
+import { vt } from '@/lib/motion';
 
 export default function Page() {
   const [ready, setReady] = useState(false);
@@ -41,13 +42,13 @@ export default function Page() {
       </header>
 
       <nav className="tabs" aria-label="Sezioni">
-        <button className="tab" aria-current={tab === 'today' ? 'page' : undefined} onClick={() => setTab('today')}><Drop />Giornata</button>
-        <button className="tab" aria-current={tab === 'history' ? 'page' : undefined} onClick={() => setTab('history')}><HistoryIcon />Cronologia</button>
+        <button className="tab" aria-current={tab === 'today' ? 'page' : undefined} onClick={() => vt(() => setTab('today'))}><Drop />Giornata</button>
+        <button className="tab" aria-current={tab === 'history' ? 'page' : undefined} onClick={() => vt(() => setTab('history'))}><HistoryIcon />Cronologia</button>
       </nav>
 
       {tab === 'today'
         ? <Today data={data} date={date} setDate={setDate} update={update} />
-        : <History data={data} open={d => { setDate(d); setTab('today'); }} />}
+        : <History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} />}
     </div>
   );
 }

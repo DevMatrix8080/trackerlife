@@ -1,6 +1,7 @@
 'use client';
 import { Data, Food, r1, totals } from '@/lib/store';
 import { Alert } from './Icons';
+import CountUp from './CountUp';
 
 type Props = { foods: Food[]; kgoal: number; fmax: number; update: (fn: (d: Data) => void) => void };
 
@@ -24,7 +25,7 @@ export default function Nutrition({ foods, kgoal, fmax, update }: Props) {
       <div className="rule-xl" />
       <div className="kcal">
         <span className="lbl">Calorie</span>
-        <span className="num">{Math.round(t.kcal)}</span>
+        <span className="num"><CountUp value={Math.round(t.kcal)} /></span>
       </div>
       <div className="left muted">{diff >= 0 ? `Restano ${diff} kcal su ${kgoal}` : `Oltre di ${-diff} kcal (obiettivo ${kgoal})`}</div>
       <div className="split" aria-hidden="true">
@@ -35,7 +36,7 @@ export default function Nutrition({ foods, kgoal, fmax, update }: Props) {
         <div key={r.k} className={'macro' + (r.k === 'f' && fatHigh ? ' over' : '')}>
           <span className="sw" style={{ background: r.color }} />
           <span className="name">{r.name}{r.k === 'f' ? <span className="muted"> · max {fmax} g</span> : null}</span>
-          <span className="g">{r1(r.g)} g</span>
+          <span className="g"><CountUp value={r1(r.g)} decimals={1} /> g</span>
           <span className="pc">{pc(r.kcal)}%</span>
         </div>
       ))}

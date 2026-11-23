@@ -185,4 +185,67 @@ tr.click:hover td{background:color-mix(in srgb,var(--p-ink) 8%,transparent)}
 .authform{display:grid;gap:10px}
 .err{color:var(--p-fat);font-weight:700;min-height:1.4em}
 
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+/* ===== Movimento =====
+   Easing a molla (linear()), numeri che scorrono, View Transitions, scroll-driven.
+   Tutto spento da prefers-reduced-motion in fondo. */
+:root{--spring:linear(0,.56 6%,1.09 20%,.97 38%,1.01 54%,1 70%,1)}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}}
+@keyframes fillin{from{width:0}}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes sheen{from{background-position:200% 0}to{background-position:-100% 0}}
+@keyframes floatup{from{opacity:0;transform:translateY(12px) scale(.8)}20%{opacity:1;transform:none}to{opacity:0;transform:translateY(-52px)}}
+@keyframes pop{from{transform:translate(0,0) scale(.3);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1.1);opacity:0}}
+@keyframes wordin{from{opacity:0;transform:translateY(48px) scale(.95);filter:blur(14px)}}
+@keyframes draw{from{transform:scaleX(0)}}
+@keyframes vt-in{from{opacity:0;transform:translateY(14px) scale(.995)}}
+@keyframes vt-out{to{opacity:0;transform:translateY(-6px)}}
+
+/* entrata a cascata delle sezioni */
+.daynav,.closed{animation:rise .7s var(--ease) backwards}
+.col>*{animation:rise .8s var(--ease) backwards;animation-delay:calc(var(--i,0)*90ms + 80ms)}
+.col>*:nth-child(2){--i:1}.col>*:nth-child(3){--i:2}
+.col:nth-child(2)>*:nth-child(1){--i:2}.col:nth-child(2)>*:nth-child(2){--i:3}
+tbody tr{animation:rise .55s var(--ease) backwards;animation-delay:calc(var(--r,0)*45ms + 120ms)}
+
+/* acqua: riempimento da zero, riflesso liquido, +ml che sale, coriandoli di gocce */
+.gauge>i{animation:fillin 1.1s var(--ease) backwards}
+.gauge>i::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%) 0 0/200% 100%;animation:sheen 3.4s linear infinite}
+.gauge{transition:border-color .4s}
+.gwrap{position:relative}
+.amount{position:relative}
+.float{position:absolute;right:0;top:0;font:900 2rem/1 var(--f-d);color:var(--aqua-text);pointer-events:none;animation:floatup 1s var(--ease) forwards}
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:3}
+.burst i{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--c);animation:pop 1s var(--ease) forwards}
+.status.ok{animation:rise .6s var(--ease) backwards}
+.split i{animation:fillin 1s var(--ease) backwards}
+.mini i{transform-origin:left;animation:grow 1s var(--ease) backwards;animation-delay:calc(var(--r,0)*45ms + 200ms)}
+
+/* pressione con rimbalzo */
+.btn,.finish,.icon-btn,.tab,.today-btn,.chip,.rm{transition:transform .35s var(--spring),filter .2s,background .2s}
+.btn:active:not(:disabled),.finish:active:not(:disabled),.icon-btn:active,.tab:active,.today-btn:active,.chip:active,.rm:active{transform:scale(.94)}
+tr.click{transition:background .2s}
+
+/* accesso */
+.hero .word{animation:wordin 1.1s var(--ease) backwards}
+.hero .ruler{transform-origin:left;animation:draw 1.2s .35s var(--ease) backwards}
+.hero p{animation:rise .9s .55s var(--ease) backwards}
+.auth .panel{animation:rise .9s .4s var(--ease) backwards}
+
+/* View Transitions: le barre restano ferme, il contenuto si dissolve */
+.top{view-transition-name:top}
+.tabs{view-transition-name:tabs}
+::view-transition-group(root){animation-duration:.5s}
+::view-transition-old(root){animation:vt-out .25s ease both}
+::view-transition-new(root){animation:vt-in .55s var(--ease) both}
+/* cambio tema: cerchio che si apre dal pulsante (animato in JS) */
+.vt-theme::view-transition-old(root),.vt-theme::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.vt-theme::view-transition-old(root){z-index:1}
+.vt-theme::view-transition-new(root){z-index:2}
+
+/* scroll-driven: la barra in alto prende sfondo sfocato scorrendo */
+@keyframes topbar{to{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line)}}
+@supports (animation-timeline:scroll()){
+  .top{position:sticky;top:0;z-index:5;margin:0 -16px;padding-left:16px;padding-right:16px;animation:topbar linear both;animation-timeline:scroll();animation-range:0 90px}
+}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}

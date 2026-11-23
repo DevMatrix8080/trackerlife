@@ -16,7 +16,7 @@ export default function FoodTable({ foods, fmax, closed, onRemove, onFinish, onR
             <thead><tr><th>Alimento</th><th>g</th><th>kcal</th><th>P</th><th>C</th><th>G</th><th><span className="sr">Rimuovi</span></th></tr></thead>
             <tbody>
               {foods.map((f, i) => (
-                <tr key={i}>
+                <tr key={i} style={{ ['--r' as string]: Math.min(i, 12) }}>
                   <td className="name">{f.name}</td><td>{f.g || '—'}</td><td>{Math.round(f.kcal)}</td>
                   <td>{r1(f.p)}</td><td>{r1(f.c)}</td>
                   <td className={'f' + (f.kcal && f.f * 9 / f.kcal > 0.3 ? ' hi' : '')}>{r1(f.f)}</td>

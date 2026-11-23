@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Data, Day, r1, totals, waterGoal } from '@/lib/store';
 import { Check, Dumbbell } from './Icons';
+import { vt } from '@/lib/motion';
 
 const MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
 type Entry = [string, Day];
@@ -32,10 +33,10 @@ export default function History({ data, open }: { data: Data; open: (date: strin
   const inMonth = y && m ? inYear.filter(([k]) => k.slice(5, 7) === m) : inYear;
   const level = !y ? 'anni' : !m ? 'mesi' : 'giorni';
 
-  const avgRow = (key: string, label: string, es: Entry[], go: () => void) => {
+  const avgRow = (key: string, label: string, es: Entry[], go: () => void, i: number) => {
     const a = agg(es, data.fmax);
     return (
-      <tr key={key} className="click" onClick={go}>
+      <tr key={key} className="click" style={{ ['--r' as string]: Math.min(i, 12) }} onClick={go}>
         <td className="name">{label}</td><td>{a.days}</td><td>{Math.round(a.kcal)}</td><td>{r1(a.p)}</td><td>{r1(a.c)}</td>
         <td className={'f' + (a.fatHigh ? ' hi' : '')}>{r1(a.f)}</td><td>{Math.round(a.water)}</td>
       </tr>
@@ -64,12 +65,12 @@ export default function History({ data, open }: { data: Data; open: (date: strin
             </tr>
           </thead>
           <tbody>
-            {level === 'anni' && group(all, 4).map(([k, es]) => avgRow(k, k, es, () => setY(k)))}
-            {level === 'mesi' && group(inYear, 7).map(([k, es]) => avgRow(k, MESI[+k.slice(5) - 1], es, () => setM(k.slice(5))))}
-            {level === 'giorni' && [...inMonth].reverse().map(([k, d]) => {
+            {level === 'anni' && group(all, 4).map(([k, es], i) => avgRow(k, k, es, () => vt(() => setY(k)), i))}
+            {level === 'mesi' && group(inYear, 7).map(([k, es], i) => avgRow(k, MESI[+k.slice(5) - 1], es, () => vt(() => setM(k.slice(5))), i))}
+            {level === 'giorni' && [...inMonth].reverse().map(([k, d], i) => {
               const t = totals(d.foods), goal = waterGoal(k, d.train).ml, ok = d.water >= goal;
               return (
-                <tr key={k} className="click" onClick={() => open(k)}>
+                <tr key={k} className="click" style={{ ['--r' as string]: Math.min(i, 12) }} onClick={() => open(k)}>
                   <td className="name">{k.slice(8)}/{k.slice(5, 7)}</td>
                   <td>{d.closed ? <Check size={18} /> : null}{d.train ? <Dumbbell size={18} /> : null}</td>
                   <td>{Math.round(t.kcal)}</td><td>{r1(t.p)}</td><td>{r1(t.c)}</td>
