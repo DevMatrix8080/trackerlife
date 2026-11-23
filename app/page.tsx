@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Auth from '@/components/Auth';
 import Today from '@/components/Today';
 import History from '@/components/History';
+import WaterYear from '@/components/WaterYear';
 import Foods from '@/components/Foods';
 import Photos from '@/components/Photos';
 import Profile from '@/components/Profile';
@@ -73,7 +74,7 @@ export default function Page() {
       </nav>
 
       {tab === 'today' && <Today foods={all} data={data} date={date} setDate={setDate} update={update} />}
-      {tab === 'history' && <History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} />}
+      {tab === 'history' && <><WaterYear data={data} /><History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} /></>}
       {tab === 'foods' && <Foods foods={foods} custom={data.custom ?? []} update={update} />}
       {tab === 'photos' && <Photos data={data} update={update} />}
       {tab === 'profile' && <Profile data={data} update={update} />}

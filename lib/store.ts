@@ -4,7 +4,9 @@ import type { Profile } from './tdee';
 export const MEALS = [['colazione', 'Colazione'], ['spuntino_m', 'Spuntino mattina'], ['pranzo', 'Pranzo'], ['spuntino_p', 'Spuntino pomeriggio'], ['cena', 'Cena']] as const;
 export type Meal = (typeof MEALS)[number][0];
 export type Food = { name: string; g: number; kcal: number; p: number; c: number; f: number; meal?: Meal };
-export type Day = { water: number; train: boolean; foods: Food[]; closed?: boolean };
+// wtag: giorno "flessibile" (obiettivo acqua non raggiunto per un motivo noto); wnote: nota libera sull'idratazione.
+export const WTAGS = [['flex', 'Giorno flessibile'], ['sick', 'Malattia'], ['trip', 'Viaggio'], ['busy', 'Imprevisto']] as const;
+export type Day = { water: number; train: boolean; foods: Food[]; closed?: boolean; wtag?: string; wnote?: string };
 // vault: salt + prova ("ok" cifrato) per verificare la passphrase delle foto. Mai la passphrase.
 export type Data = { days: Record<string, Day>; kgoal: number; fmax: number; profile?: Profile; custom?: Preset[]; vault?: { salt: string; check: string } };
 

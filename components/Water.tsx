@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Day } from '@/lib/store';
+import { Day, WTAGS } from '@/lib/store';
 import CountUp from './CountUp';
 import { Check, Drop, Dumbbell, Minus, Plus } from './Icons';
 
@@ -62,7 +62,7 @@ export default function Water({ date, day, goal, edit }: Props) {
 
       <div className={'status' + (done ? ' ok' : '')}>
         {done ? <><Check size={24} />Obiettivo raggiunto</> : <><Drop size={22} />Mancano {goal.ml - day.water} ml</>}
-        <span className="cheer">{cheer}</span>
+        <span className="cheer">{!done && day.wtag ? 'Va bene così: giorno flessibile, domani riparti.' : cheer}</span>
       </div>
 
       <div className="qa">
@@ -75,6 +75,14 @@ export default function Water({ date, day, goal, edit }: Props) {
         <button className="btn sq" aria-label="Aggiungi i ml indicati" disabled={!(+custom > 0)} onClick={() => { add(+custom); setCustom(''); }}><Plus /></button>
       </div>
 
+      <div className="divider" />
+      <div className="chips" role="group" aria-label="Tag giornata">
+        {WTAGS.map(([k, l]) => (
+          <button key={k} className="chip2" aria-pressed={day.wtag === k} onClick={() => edit(d => { d.wtag = d.wtag === k ? undefined : k; })}>{l}</button>
+        ))}
+      </div>
+      <textarea className="input note2" rows={2} maxLength={300} placeholder="Descrizione (perché, come ti sei sentito…)" aria-label="Descrizione idratazione"
+        defaultValue={day.wnote ?? ''} key={date} onBlur={e => edit(d => { d.wnote = e.target.value.trim() || undefined; })} />
       <div className="divider" />
       <label className="switch">
         <input type="checkbox" role="switch" checked={day.train} onChange={e => edit(d => { d.train = e.target.checked; })} />

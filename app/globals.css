@@ -298,3 +298,16 @@ td.mealrow{text-align:left;padding-top:14px;font:800 .95rem/1 var(--f-d);text-tr
 .tab{min-width:0;padding:0 2px}
 @media(max-width:859px){.tab{font-size:.75rem}}
 @media(min-width:860px){.tab{padding:0 20px}}
+
+/* ---- tag idratazione, grafico anni ---- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip2{height:38px;padding:0 14px;border-radius:19px;border:2px solid var(--line);font-weight:700;transition:background .2s,transform .35s var(--spring)}
+.chip2[aria-pressed="true"]{background:var(--carb);border-color:var(--carb);color:#0A1230}
+.chip2:active{transform:scale(.94)}
+.note2{height:auto;padding:10px 14px;resize:vertical;font-family:inherit}
+.yr{display:grid;grid-template-columns:56px 1fr 48px;gap:10px;align-items:center;margin-bottom:10px}
+.yr .num{font-size:1.4rem}
+.yr span{text-align:right;font-weight:800}
+.ybar{display:flex;height:22px;border-radius:11px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.ybar i{display:block;height:100%;transition:width .6s var(--ease)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 8px}
