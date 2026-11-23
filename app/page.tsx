@@ -5,7 +5,7 @@ import Today from '@/components/Today';
 import History from '@/components/History';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Drop, History as HistoryIcon, Logout } from '@/components/Icons';
-import { Data, ls, loadData, today } from '@/lib/store';
+import { Data, currentUser, ls, loadData, today } from '@/lib/store';
 
 export default function Page() {
   const [ready, setReady] = useState(false);
@@ -14,7 +14,7 @@ export default function Page() {
   const [date, setDate] = useState(today());
   const [tab, setTab] = useState<'today' | 'history'>('today');
 
-  useEffect(() => { setUser(ls.get<string | null>('session', null)); setReady(true); }, []);
+  useEffect(() => { setUser(currentUser()); setReady(true); }, []);
   useEffect(() => { setData(user ? loadData(user) : null); }, [user]);
 
   const update = (fn: (d: Data) => void) =>

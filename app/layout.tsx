@@ -7,7 +7,8 @@ const body = Barlow({ subsets: ['latin'], weight: ['400', '500', '600', '700'], 
 export const metadata = { title: 'MyLife – Acqua, calorie, macro' };
 
 // Imposta il tema prima del paint per evitare il lampo chiaro/scuro.
-const themeInit = `try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='dark'}`;
+// Anti-clickjacking: se la pagina è dentro un iframe altrui, si nasconde (frame-ancestors non vale in un meta CSP).
+const themeInit = `if(top!==self)document.documentElement.style.display='none';try{var t=localStorage.getItem('theme');if(!t)t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='dark'}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

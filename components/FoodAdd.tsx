@@ -28,7 +28,7 @@ export default function FoodAdd({ onAdd }: { onAdd: (f: Food) => void }) {
     setHits('Ricerca…');
     try {
       const url = 'https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=10&fields=product_name,nutriments&search_terms=' + encodeURIComponent(q.trim());
-      const res = await fetch(url);
+      const res = await fetch(url, { referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(8000) });
       if (!res.ok) throw new Error();
       const items: { product_name?: string; nutriments?: Record<string, number> }[] = (await res.json()).products;
       const out = items
