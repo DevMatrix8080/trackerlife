@@ -21,7 +21,7 @@ for (const file of pages('out')) {
     "style-src 'self' 'unsafe-inline'", // gli style="" di React richiedono unsafe-inline (solo stili, mai script)
     "img-src 'self' data:",
     "font-src 'self'",
-    "connect-src 'self' https://world.openfoodfacts.org",
+    "connect-src 'self' https://world.openfoodfacts.org https://*.googleapis.com",
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'self'",

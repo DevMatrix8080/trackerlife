@@ -5,7 +5,8 @@ import Today from '@/components/Today';
 import History from '@/components/History';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Drop, History as HistoryIcon, Logout } from '@/components/Icons';
-import { Data, currentUser, ls, loadData, today } from '@/lib/store';
+import { Data, ls, loadData, today } from '@/lib/store';
+import { logout, onUser, pull, push } from '@/lib/cloud';
 import { vt } from '@/lib/motion';
 
 export default function Page() {
@@ -15,8 +16,22 @@ export default function Page() {
   const [date, setDate] = useState(today());
   const [tab, setTab] = useState<'today' | 'history'>('today');
 
-  useEffect(() => { setUser(currentUser()); setReady(true); }, []);
-  useEffect(() => { setData(user ? loadData(user) : null); }, [user]);
+  useEffect(() => onUser(u => { setUser(u); setReady(true); }), []);
+  useEffect(() => {
+    setData(null);
+    if (!user) return;
+    let alive = true;
+    const local = loadData(user); // cache locale: offline o prima sincronizzazione
+    pull().then(
+      remote => {
+        if (!alive) return;
+        if (remote) { const d = { ...local, ...remote }; ls.set('data:' + user, d); setData(d); }
+        else { push(local).catch(() => {}); setData(local); } // primo accesso: carica i dati già presenti in questo browser
+      },
+      () => alive && setData(local),
+    );
+    return () => { alive = false; };
+  }, [user]);
 
   const update = (fn: (d: Data) => void) =>
     setData(prev => {
@@ -24,11 +39,13 @@ export default function Page() {
       const next = structuredClone(prev);
       fn(next);
       ls.set('data:' + user, next);
+      push(next).catch(() => {}); // shortcut: errore di rete ignorato, la cache locale tiene i dati; al prossimo salvataggio si risincronizza
       return next;
     });
 
   if (!ready) return null;
-  if (!user || !data) return <Auth onLogin={setUser} />;
+  if (!user) return <Auth />;
+  if (!data) return null;
 
   return (
     <div className="app">
@@ -37,7 +54,7 @@ export default function Page() {
         <div className="top-actions">
           <span className="user">{user}</span>
           <ThemeToggle />
-          <button className="icon-btn" aria-label="Esci" onClick={() => { localStorage.removeItem('session'); setUser(null); }}><Logout /></button>
+          <button className="icon-btn" aria-label="Esci" onClick={logout}><Logout /></button>
         </div>
       </header>
 
