@@ -31,3 +31,9 @@ alter table public.foods enable row level security;
 create policy foods_read on public.foods for select to authenticated using (true);
 revoke all on public.foods from anon;
 revoke insert, update, delete on public.foods from authenticated;
+
+-- Permessi per l'API (servono perché "Grant API access to new tables automatically" è disattivato).
+grant usage on schema public to authenticated;
+grant select, insert, update on public.user_data to authenticated;
+grant select on public.foods to authenticated;
+grant usage, select on sequence public.foods_id_seq to authenticated;

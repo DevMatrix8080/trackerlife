@@ -65,10 +65,9 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 3. Authentication → Sign In / Providers → Email: **disattiva "Confirm email"** (gli utenti hanno email finta), **Minimum password length = 10**, attiva "Prevent use of leaked passwords" se disponibile.
 4. Authentication → URL Configuration: Site URL = `https://<utente>.github.io/trackerlife`.
 5. SQL Editor → incolla `supabase-foods.sql` (tuo file locale) → Run: carica i cibi.
-6. Project Settings → API: copia **Project URL** e **anon public key** in `lib/cloud.ts` (riga `createClient(...)`). Mai la `service_role` key.
+6. Project Settings → API Keys: copia **Project URL** e **publishable key** (o legacy anon) in `lib/cloud.ts` (riga `createClient(...)`). Mai la `service_role` key.
 
 ## Limiti noti / shortcut
-- `lib/cloud.ts` contiene ancora i segnaposto `INCOLLA_*` (URL e anon key) finché non si inserisce la config → senza di essa login/registrazione falliscono.
 - Errori di rete su `push` sono ignorati (la cache locale tiene i dati; si risincronizza al salvataggio successivo). Conflitto multi-dispositivo: vince l'ultimo salvataggio (intero documento).
 - Account vecchi creati solo in localStorage NON esistono nel cloud: vanno ricreati.
 - Il minimo password di creazione è applicato solo dal client finché non si imposta il criterio in console.

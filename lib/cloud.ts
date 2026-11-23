@@ -4,7 +4,7 @@ import type { Preset } from './foods';
 import { PW_MIN, pwStrong } from './password';
 
 // Config Supabase: URL e anon key sono pubbliche per design, la sicurezza sta nelle policy RLS (supabase.sql).
-const sb = createClient('https://INCOLLA_PROJECT_ID.supabase.co', 'INCOLLA_ANON_KEY');
+const sb = createClient('https://glrbznulnsvcivaagtsk.supabase.co', 'sb_publishable_sEa_EyV9ciIsnvnuiitLcA_3HXM6ili');
 
 const NAME_OK = /^[a-z0-9_.-]{3,20}$/;
 const email = (n: string) => `${n}@mylife.app`; // email finta: Supabase vuole un'email, l'utente usa solo il nome
