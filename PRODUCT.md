@@ -13,13 +13,13 @@ Una persona che si allena (palestra) e vuole seguire ogni giorno acqua, calorie 
 Tracciare ogni giorno l'acqua bevuta rispetto a un obiettivo (3 L nei giorni di allenamento, altrimenti 2500 ml in inverno e 3 L in estate), registrare i cibi con calorie e macro, tenere i grassi bassi, chiudere la giornata ("Giornata finita") in una tabella, e consultare la cronologia per anno, mese e giorno. Successo: aggiornare in pochi secondi e capire a colpo d'occhio se si è in linea.
 
 ## Positioning
-Un unico posto che unisce idratazione (con obiettivo legato all'allenamento e alla stagione) e nutrizione con controllo esplicito dei grassi e chiusura giornaliera, con account sincronizzato su Firebase.
+Un unico posto che unisce idratazione (con obiettivo legato all'allenamento e alla stagione) e nutrizione con controllo esplicito dei grassi e chiusura giornaliera, con account sincronizzato su Supabase.
 
 ## Operating Context
-Web app Next.js + React + TypeScript, export statico. Account e dati su Firebase (Auth + Firestore), cache in localStorage; config Firebase pubblica, nessun segreto nel repo. Vedi PROJECT.md. Lingua: italiano. Ricerca cibi tramite Open Food Facts.
+Web app Next.js + React + TypeScript, export statico. Account e dati su Supabase (Auth + Postgres), cache in localStorage; config Supabase pubblica, nessun segreto nel repo. Vedi PROJECT.md. Lingua: italiano. Ricerca cibi tramite Open Food Facts.
 
 ## Capabilities and Constraints
-- Login con nome utente e password (Firebase, sync multi-dispositivo; password forte alla creazione).
+- Login con nome utente e password (Supabase, sync multi-dispositivo; password forte alla creazione).
 - Acqua con obiettivo dinamico, spunta allenamento, storico 7 giorni.
 - Cibi: ricerca Open Food Facts o inserimento manuale; tabella con kcal, proteine, carboidrati, grassi e totali; limite grassi configurabile (default 60 g); obiettivo kcal configurabile (default 2500).
 - "Giornata finita" blocca la giornata; "Riapri" la sblocca.

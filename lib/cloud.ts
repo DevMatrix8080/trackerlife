@@ -1,29 +1,18 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { createClient } from '@supabase/supabase-js';
 import type { Data } from './store';
 import { PW_MIN, pwStrong } from './password';
 
-// Config Firebase (web): pubblica per design, la sicurezza sta nelle regole Firestore e in Auth.
-const app = initializeApp({
-  apiKey: 'INCOLLA_apiKey',
-  authDomain: 'INCOLLA_authDomain',
-  projectId: 'INCOLLA_projectId',
-  appId: 'INCOLLA_appId',
-});
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Config Supabase: URL e anon key sono pubbliche per design, la sicurezza sta nelle policy RLS (supabase.sql).
+const sb = createClient('https://INCOLLA_PROJECT_ID.supabase.co', 'INCOLLA_ANON_KEY');
 
 const NAME_OK = /^[a-z0-9_.-]{3,20}$/;
-const email = (n: string) => `${n}@mylife.app`; // email finta: Firebase vuole un'email, l'utente usa solo il nome
+const email = (n: string) => `${n}@mylife.app`; // email finta: Supabase vuole un'email, l'utente usa solo il nome
 
 const ERR: Record<string, string> = {
-  'auth/email-already-in-use': 'Utente già esistente',
-  'auth/invalid-credential': 'Credenziali errate',
-  'auth/user-not-found': 'Credenziali errate',
-  'auth/wrong-password': 'Credenziali errate',
-  'auth/too-many-requests': 'Troppi tentativi. Riprova più tardi',
-  'auth/network-request-failed': 'Nessuna connessione',
+  user_already_exists: 'Utente già esistente',
+  invalid_credentials: 'Credenziali errate',
+  over_request_rate_limit: 'Troppi tentativi. Riprova più tardi',
+  weak_password: 'Password troppo debole',
 };
 
 /** Ritorna un messaggio d'errore, oppure null se ok. */
@@ -33,23 +22,37 @@ export async function authenticate(rawName: string, pw: string, signup: boolean)
   if (!pw || pw.length > 200) return 'Password non valida';
   if (signup && !pwStrong(pw)) return `Password troppo debole: almeno ${PW_MIN} caratteri e 3 requisiti su 4`;
   try {
-    await (signup ? createUserWithEmailAndPassword : signInWithEmailAndPassword)(auth, email(name), pw);
-    return null;
-  } catch (e) {
-    return ERR[(e as { code?: string }).code ?? ''] ?? 'Errore, riprova';
+    const { data, error } = signup
+      ? await sb.auth.signUp({ email: email(name), password: pw })
+      : await sb.auth.signInWithPassword({ email: email(name), password: pw });
+    if (error) return ERR[error.code ?? ''] ?? (error.status === 0 ? 'Nessuna connessione' : 'Errore, riprova');
+    return data.session ? null : 'Registrazione non completata: in Supabase disattiva "Confirm email"';
+  } catch {
+    return 'Nessuna connessione';
   }
 }
 
-/** Chiama cb con il nome utente (o null) a ogni cambio di sessione; ritorna l'unsubscribe. */
-export const onUser = (cb: (u: string | null) => void) =>
-  onAuthStateChanged(auth, u => cb(u?.email ? u.email.split('@')[0] : null));
+/** Chiama cb con il nome utente (o null) subito e a ogni cambio di sessione; ritorna l'unsubscribe. */
+export const onUser = (cb: (u: string | null) => void) => {
+  const { data } = sb.auth.onAuthStateChange((_e, s) => cb(s?.user.email ? s.user.email.split('@')[0] : null));
+  return () => data.subscription.unsubscribe();
+};
 
 // Al logout si cancellano cache dati e residui del vecchio login locale: su un dispositivo condiviso non resta nulla.
 export const logout = () => {
   try { Object.keys(localStorage).filter(k => /^(data:|users$|session$|locks$)/.test(k)).forEach(k => localStorage.removeItem(k)); } catch { /* storage bloccato */ }
-  return signOut(auth);
+  return sb.auth.signOut();
 };
 
-const ref = () => doc(db, 'users', auth.currentUser!.uid);
-export const pull = async () => (await getDoc(ref())).data()?.d as Data | undefined;
-export const push = (d: Data) => setDoc(ref(), { d: JSON.parse(JSON.stringify(d)) });
+export const pull = async () => {
+  const { data, error } = await sb.from('user_data').select('d').maybeSingle(); // RLS: ritorna solo la riga dell'utente
+  if (error) throw error;
+  return data?.d as Data | undefined;
+};
+
+export const push = async (d: Data) => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('no session');
+  const { error } = await sb.from('user_data').upsert({ id: session.user.id, d, updated_at: new Date().toISOString() });
+  if (error) throw error;
+};
