@@ -78,6 +78,6 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 3. Animazioni: View Transitions, CountUp, effetto liquido, scroll-driven.
 4. **Sync multi-dispositivo**: prima Firebase, poi sostituito da Supabase (`lib/cloud.ts`, `supabase.sql`); rimosso auth locale PBKDF2 da `store.ts`; CSP aperta a `*.supabase.co`.
 5. **Password forte in creazione** con misuratore animato (`lib/password.ts`, `Auth.tsx`, CSS `.pw*`); logout pulisce cache; `supabase.sql` con RLS e validazione.
-6. Ricerca cibi: tolto Open Food Facts, ora elenco locale `lib/foods.ts` (nessuna chiamata esterna).
+6. Ricerca cibi: solo elenco locale, nessuna chiamata esterna.
 7. Elenco cibi riallineato a `Food_excel_it.csv` (stessi valori del CSV precedente; nessun cibo vecchio rimasto).
 8. **Cibi nascosti al pubblico**: spostati da `lib/foods.ts` (bundle JS pubblico) a tabella Supabase `foods` con RLS; `.history/` e `supabase-foods.sql` in `.gitignore`.
