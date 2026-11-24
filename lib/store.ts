@@ -8,7 +8,8 @@ export type Food = { name: string; g: number; kcal: number; p: number; c: number
 export const WTAGS = [['flex', 'Giorno flessibile'], ['sick', 'Malattia'], ['trip', 'Viaggio'], ['busy', 'Imprevisto']] as const;
 export type Day = { water: number; train: boolean; foods: Food[]; closed?: boolean; wtag?: string; wnote?: string };
 // vault: salt + prova ("ok" cifrato) per verificare la passphrase delle foto. Mai la passphrase.
-export type Data = { days: Record<string, Day>; kgoal: number; fmax: number; profile?: Profile; custom?: Preset[]; vault?: { salt: string; check: string } };
+export type Data = { days: Record<string, Day>; kgoal: number; fmax: number; profile?: Profile; custom?: Preset[]; vault?: { salt: string; check: string };
+  body?: Record<string, { w: number; waist?: number }>; meals?: { name: string; foods: Food[] }[] };
 
 export const ls = {
   get<T>(k: string, d: T): T {
@@ -31,3 +32,12 @@ export function waterGoal(date: string, train: boolean) {
 
 export const totals = (foods: Food[]) =>
   foods.reduce((a, f) => ({ kcal: a.kcal + f.kcal, p: a.p + f.p, c: a.c + f.c, f: a.f + f.f }), { kcal: 0, p: 0, c: 0, f: 0 });
+
+export const shiftDate = (date: string, n: number) => { const d = new Date(date + 'T12:00'); d.setDate(d.getDate() + n); return d.toLocaleDateString('sv'); };
+
+// Quante volte hai mangiato ogni cibo (nome senza il prefisso "2× "): ordina "più usati" e ricerche.
+export function freq(d: Data) {
+  const m = new Map<string, number>();
+  for (const day of Object.values(d.days)) for (const f of day.foods) { const k = f.name.replace(/^[d.,]+×s*/, ''); m.set(k, (m.get(k) ?? 0) + 1); }
+  return m;
+}

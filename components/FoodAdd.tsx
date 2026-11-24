@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { Food, MEALS, Meal } from '@/lib/store';
-import { Plus, Search } from './Icons';
+import { Data, Food, MEALS, Meal, emptyDay, freq, totals } from '@/lib/store';
+import { Plus, Search, X } from './Icons';
 import { Preset, searchFoods } from '@/lib/foods';
 
 function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
@@ -16,11 +16,19 @@ function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
   );
 }
 
-export default function FoodAdd({ foods, onAdd }: { foods: Preset[]; onAdd: (f: Food) => void }) {
+type Props = { foods: Preset[]; data: Data; date: string; update: (fn: (d: Data) => void) => void; onAdd: (f: Food) => void };
+
+export default function FoodAdd({ foods, data, date, update, onAdd }: Props) {
   const [q, setQ] = useState('');
   const [meal, setMeal] = useState<Meal>(() => { const h = new Date().getHours(); return h < 10 ? 'colazione' : h < 12 ? 'spuntino_m' : h < 15 ? 'pranzo' : h < 18 ? 'spuntino_p' : 'cena'; });
   const [man, setMan] = useState({ name: '', kcal: '', p: '', c: '', f: '' });
-  const hits = searchFoods(foods, q);
+  const [mname, setMname] = useState('');
+  const used = freq(data);
+  const byUse = (a: Preset, b: Preset) => (used.get(b.name) ?? 0) - (used.get(a.name) ?? 0);
+  const hits = q.trim() ? searchFoods(foods, q).sort(byUse) : foods.filter(x => used.has(x.name)).sort(byUse).slice(0, 8);
+  const meals = data.meals ?? [];
+  const inMeal = (data.days[date] ?? emptyDay()).foods.filter(f => f.meal === meal);
+  const mealLabel = MEALS.find(m => m[0] === meal)![1];
 
   function addManual() {
     if (!man.name.trim()) return;
@@ -41,7 +49,26 @@ export default function FoodAdd({ foods, onAdd }: { foods: Preset[]; onAdd: (f: 
       </div>
       <div className="muted" style={{ margin: '6px 0 0', fontSize: '.9rem' }}>I tuoi cibi, valori per la porzione indicata. Scegli le porzioni e premi +.</div>
       {q.trim() && !hits.length && <div className="muted" style={{ paddingTop: 10 }}>Nessun risultato: inseriscilo a mano qui sotto.</div>}
+      {!q.trim() && hits.length > 0 && <div className="muted" style={{ paddingTop: 10, fontWeight: 700 }}>Più usati</div>}
       {hits.map(h => <Result key={h.name} h={h} onAdd={f => onAdd({ ...f, meal })} />)}
+
+      <details className="manual">
+        <summary>Pasti salvati ({meals.length})</summary>
+        {meals.map((m, i) => (
+          <div key={i} className="hit">
+            <div className="t">{m.name}<div className="k">{m.foods.length} cibi · {Math.round(totals(m.foods).kcal)} kcal</div></div>
+            <button className="btn sq" aria-label={`Aggiungi ${m.name}`}
+              onClick={() => update(d => { (d.days[date] ??= emptyDay()).foods.push(...structuredClone(m.foods).map(f => ({ ...f, meal }))); })}><Plus /></button>
+            <button className="rm" aria-label={`Elimina ${m.name}`} onClick={() => update(d => { d.meals?.splice(i, 1); })}><X size={18} /></button>
+          </div>
+        ))}
+        <div className="row" style={{ marginTop: 10 }}>
+          <input className="input grow" placeholder={`Nome (salva: ${mealLabel} di oggi)`} aria-label="Nome del pasto" maxLength={40} value={mname} onChange={e => setMname(e.target.value)} />
+          <button className="btn sq" aria-label="Salva pasto" disabled={!mname.trim() || !inMeal.length}
+            onClick={() => { update(d => { (d.meals ??= []).push({ name: mname.trim(), foods: inMeal.map(({ meal: _m, ...f }) => f) }); }); setMname(''); }}><Plus /></button>
+        </div>
+        {!inMeal.length && <div className="muted" style={{ marginTop: 6, fontSize: '.9rem' }}>Per salvare, aggiungi prima dei cibi a «{mealLabel}».</div>}
+      </details>
 
       <details className="manual">
         <summary>Inserisci a mano</summary>

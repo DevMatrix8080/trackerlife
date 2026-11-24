@@ -1,5 +1,5 @@
 'use client';
-import { Data, Day, Food, emptyDay, today, waterGoal } from '@/lib/store';
+import { Data, Day, Food, emptyDay, shiftDate, today, waterGoal } from '@/lib/store';
 import { vt } from '@/lib/motion';
 import type { Preset } from '@/lib/foods';
 import Water from './Water';
@@ -16,6 +16,7 @@ export default function Today({ foods, data, date, setDate, update }: Props) {
   const closed = !!day.closed;
   const edit = (fn: (d: Day) => void) => update(x => fn((x.days[date] ??= emptyDay())));
   const goal = waterGoal(date, day.train);
+  const prev = data.days[shiftDate(date, -1)]?.foods ?? [];
   const go = (d: string) => vt(() => setDate(d));
 
   const shift = (n: number) => {
@@ -46,7 +47,9 @@ export default function Today({ foods, data, date, setDate, update }: Props) {
           <Nutrition foods={day.foods} kgoal={data.kgoal} pgoal={data.profile && proteinGoal(data.profile)} fmax={data.fmax} update={update} />
         </div>
         <div className="col">
-          <fieldset disabled={closed}><FoodAdd foods={foods} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
+          {!closed && <button className="btn sec" style={{ width: '100%', marginBottom: 12 }} disabled={!prev.length}
+            onClick={() => edit(d => { d.foods.push(...structuredClone(prev)); })}>Copia da ieri ({prev.length} cibi)</button>}
+          <fieldset disabled={closed}><FoodAdd foods={foods} data={data} date={date} update={update} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
           <FoodTable foods={day.foods} fmax={data.fmax} closed={closed}
             onRemove={i => edit(d => { d.foods.splice(i, 1); })}
             onFinish={() => edit(d => { d.closed = true; })}

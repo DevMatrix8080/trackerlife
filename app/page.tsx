@@ -7,8 +7,11 @@ import WaterYear from '@/components/WaterYear';
 import Foods from '@/components/Foods';
 import Photos from '@/components/Photos';
 import Profile from '@/components/Profile';
+import Weight from '@/components/Weight';
+import Week from '@/components/Week';
+import Backup from '@/components/Backup';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Camera, Drop, History as HistoryIcon, List, Logout, User } from '@/components/Icons';
+import { Camera, Drop, Dumbbell, History as HistoryIcon, List, Logout, User } from '@/components/Icons';
 import { Data, ls, loadData, today } from '@/lib/store';
 import { logout, onUser, pull, pullFoods, push } from '@/lib/cloud';
 import type { Preset } from '@/lib/foods';
@@ -20,7 +23,7 @@ export default function Page() {
   const [data, setData] = useState<Data | null>(null);
   const [foods, setFoods] = useState<Preset[]>([]);
   const [date, setDate] = useState(today());
-  const [tab, setTab] = useState<'today' | 'history' | 'foods' | 'photos' | 'profile'>('today');
+  const [tab, setTab] = useState<'today' | 'history' | 'foods' | 'photos' | 'weight' | 'profile'>('today');
 
   useEffect(() => onUser(u => { setUser(u); setReady(true); }), []);
   useEffect(() => {
@@ -68,16 +71,17 @@ export default function Page() {
       </header>
 
       <nav className="tabs" aria-label="Sezioni">
-        {([['today', Drop, 'Giornata'], ['history', HistoryIcon, 'Cronologia'], ['foods', List, 'Cibi'], ['photos', Camera, 'Foto'], ['profile', User, 'Profilo']] as const).map(([k, Icon, l]) => (
+        {([['today', Drop, 'Giornata'], ['history', HistoryIcon, 'Cronologia'], ['foods', List, 'Cibi'], ['photos', Camera, 'Foto'], ['weight', Dumbbell, 'Peso'], ['profile', User, 'Profilo']] as const).map(([k, Icon, l]) => (
           <button key={k} className="tab" aria-current={tab === k ? 'page' : undefined} onClick={() => vt(() => setTab(k))}><Icon />{l}</button>
         ))}
       </nav>
 
       {tab === 'today' && <Today foods={all} data={data} date={date} setDate={setDate} update={update} />}
-      {tab === 'history' && <><WaterYear data={data} /><History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} /></>}
+      {tab === 'history' && <><Week data={data} /><WaterYear data={data} /><History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} /></>}
       {tab === 'foods' && <Foods foods={foods} custom={data.custom ?? []} update={update} />}
       {tab === 'photos' && <Photos data={data} update={update} />}
-      {tab === 'profile' && <Profile data={data} update={update} />}
+      {tab === 'weight' && <Weight data={data} update={update} />}
+      {tab === 'profile' && <><Profile data={data} update={update} /><Backup data={data} /></>}
     </div>
   );
 }

@@ -81,3 +81,4 @@ Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
 6. Ricerca cibi: solo elenco locale, nessuna chiamata esterna.
 7. Elenco cibi riallineato a `Food_excel_it.csv` (stessi valori del CSV precedente; nessun cibo vecchio rimasto).
 8. **Cibi nascosti al pubblico**: spostati da `lib/foods.ts` (bundle JS pubblico) a tabella Supabase `foods` con RLS; `.history/` e `supabase-foods.sql` in `.gitignore`.
+9. **Funzioni d'uso quotidiano**: cibi "più usati" in ricerca (`freq` in `store.ts`), pasti salvati (`Data.meals`, in `FoodAdd.tsx`), "Copia da ieri" (`Today.tsx`), tab **Peso** (`Weight.tsx`, `Data.body`: peso/vita, grafico, andamento a 28 gg e correzione kcal da applicare a mano), riepilogo 7 giorni in Cronologia (`Week.tsx`), export CSV/backup JSON in Profilo (`Backup.tsx`). Tutto dentro il jsonb `user_data.d`: nessuna modifica a `supabase.sql`.
