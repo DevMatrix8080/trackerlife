@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4096" height="4096" viewBox="0 0 1024 1024">
+  <title>AquaMacro</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#16256B"/>
+      <stop offset="1" stop-color="#070D26"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="46%" r="46%">
+      <stop offset="0" stop-color="#3DD5FF" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#3DD5FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="drop" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#8CEBFF"/>
+      <stop offset=".55" stop-color="#3DD5FF"/>
+      <stop offset="1" stop-color="#1383D6"/>
+    </linearGradient>
+    <clipPath id="shape"><path id="d" d="M512 168C512 168 724 392 724 580a212 212 0 0 1-424 0C300 392 512 168 512 168z"/></clipPath>
+  </defs>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="228" fill="url(#glow)"/>
+  <path d="M512 168C512 168 724 392 724 580a212 212 0 0 1-424 0C300 392 512 168 512 168z" fill="url(#drop)"/>
+  <g clip-path="url(#shape)">
+    <!-- livello d'acqua: onda -->
+    <path d="M280 548c58-34 116-34 174 0s116 34 174 0 116-34 174 0V820H280z" fill="#0A1A5E" fill-opacity=".38"/>
+    <!-- tre barre macro: proteine, carboidrati, grassi -->
+    <rect x="384" y="650" width="64" height="104" rx="22" fill="#FF8A3D"/>
+    <rect x="480" y="614" width="64" height="140" rx="22" fill="#FFD43B"/>
+    <rect x="576" y="678" width="64" height="76" rx="22" fill="#FF4D8D"/>
+  </g>
+  <!-- riflesso -->
+  <path d="M386 452c-20 48-18 96 6 132" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="30" stroke-linecap="round"/>
+</svg>

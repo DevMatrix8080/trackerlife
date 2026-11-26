@@ -4,15 +4,25 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { reduced } from '@/lib/motion';
 import { Moon, Sun } from './Icons';
 
+const BAR = { dark: '#0A1230', light: '#E9EEFB' };
+const paint = (t: 'dark' | 'light') => { document.documentElement.dataset.theme = t; document.querySelector('meta[name=theme-color]')?.setAttribute('content', BAR[t]); };
+
 type VT = { ready: Promise<void>; finished: Promise<void> };
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  useEffect(() => { setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'); }, []);
+  useEffect(() => {
+    setTheme(document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+    // Se non hai mai scelto a mano, segue il tema del telefono/PC anche mentre l'app è aperta.
+    const mq = matchMedia('(prefers-color-scheme: light)');
+    const f = () => { try { if (localStorage.getItem('theme')) return; } catch { return; } const t = mq.matches ? 'light' : 'dark'; paint(t); setTheme(t); };
+    mq.addEventListener('change', f);
+    return () => mq.removeEventListener('change', f);
+  }, []);
 
   function toggle(e: MouseEvent<HTMLButtonElement>) {
     const next = theme === 'dark' ? 'light' : 'dark';
-    const apply = () => { document.documentElement.dataset.theme = next; setTheme(next); };
+    const apply = () => { paint(next); setTheme(next); };
     try { localStorage.setItem('theme', next); } catch { /* storage bloccato: il tema vale per la sessione */ }
 
     const d = document as Document & { startViewTransition?: (cb: () => void) => VT };

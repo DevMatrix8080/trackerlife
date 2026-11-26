@@ -60,10 +60,22 @@ export const push = async (d: Data) => {
 
 /** Cibi personali: protetti da RLS, rispondono solo a utenti loggati. Cache locale per l'offline (cancellata al logout). */
 export const pullFoods = async (): Promise<Preset[]> => {
-  const { data, error } = await sb.from('foods').select('name,kcal,f,c,p').order('name');
+  const { data, error } = await sb.from('foods').select('id,name,kcal,f,c,p,uid').order('name');
   if (error) throw error;
-  try { localStorage.setItem('foods', JSON.stringify(data)); } catch { /* storage bloccato */ }
-  return data as Preset[];
+  const list = data.map(({ uid, ...r }) => ({ ...r, own: uid != null })) as Preset[]; // own = aggiunto da te (cancellabile)
+  try { localStorage.setItem('foods', JSON.stringify(list)); } catch { /* storage bloccato */ }
+  return list;
+};
+
+/** Aggiunge un cibo alla tabella generale. RLS: la riga è tua (uid = tu), la vedi solo tu e puoi cancellarla. */
+export const addFood = async (p: Preset): Promise<Preset> => {
+  const { data, error } = await sb.from('foods').insert({ name: p.name, kcal: p.kcal, f: p.f, c: p.c, p: p.p }).select('id,name,kcal,f,c,p').single();
+  if (error) throw error;
+  return { ...(data as Preset), own: true };
+};
+export const delFood = async (id: number) => {
+  const { error } = await sb.from('foods').delete().eq('id', id);
+  if (error) throw error;
 };
 
 // Foto: sul server arriva solo testo cifrato (AES-256-GCM, vedi crypto.ts). RLS: ognuno vede solo le proprie.

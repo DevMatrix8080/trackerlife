@@ -1,21 +1,30 @@
 'use client';
 import { useState } from 'react';
 import { Data } from '@/lib/store';
-import { Preset, searchFoods } from '@/lib/foods';
+import { Preset, hasFood, searchFoods } from '@/lib/foods';
 import { Plus, X } from './Icons';
+import AskGeneral from './AskGeneral';
 
-export default function Foods({ foods, custom, update }: { foods: Preset[]; custom: Preset[]; update: (fn: (d: Data) => void) => void }) {
+type Props = { foods: Preset[]; custom: Preset[]; update: (fn: (d: Data) => void) => void; onSaveGeneral: (p: Preset) => Promise<string | null>; onDelGeneral: (p: Preset) => Promise<string | null> };
+
+export default function Foods({ foods, custom, update, onSaveGeneral, onDelGeneral }: Props) {
   const [q, setQ] = useState('');
   const [n, setN] = useState({ name: '', kcal: '', p: '', c: '', f: '' });
+  const [ask, setAsk] = useState<Preset | null>(null); // cibo in attesa della scelta: tabella generale o solo elenco personale
+  const [err, setErr] = useState('');
   const set = (k: keyof typeof n) => (e: React.ChangeEvent<HTMLInputElement>) => setN({ ...n, [k]: e.target.value });
   const all = [...custom, ...foods];
   const list = q.trim() ? searchFoods(all, q, 500) : all;
   const mine = new Set(custom);
+  const removable = (f: Preset) => mine.has(f) || f.own;
 
-  const add = () => {
-    update(d => { (d.custom ??= []).unshift({ name: n.name.trim(), kcal: +n.kcal || 0, p: +n.p || 0, c: +n.c || 0, f: +n.f || 0 }); });
-    setN({ name: '', kcal: '', p: '', c: '', f: '' });
+  const reset = () => setN({ name: '', kcal: '', p: '', c: '', f: '' });
+  const save = () => {
+    const p = { name: n.name.trim(), kcal: +n.kcal || 0, p: +n.p || 0, c: +n.c || 0, f: +n.f || 0 };
+    if (hasFood(all, p.name)) return setErr('Esiste già un cibo con questo nome.');
+    setErr(''); setAsk(p);
   };
+  const keepPersonal = (p: Preset) => { update(d => { (d.custom ??= []).unshift(p); }); setAsk(null); reset(); };
 
   return (
     <div className="cols">
@@ -28,7 +37,11 @@ export default function Foods({ foods, custom, update }: { foods: Preset[]; cust
           <input className="input" type="number" inputMode="decimal" placeholder="Carbo g" value={n.c} onChange={set('c')} />
           <input className="input" type="number" inputMode="decimal" placeholder="Grassi g" value={n.f} onChange={set('f')} />
         </div>
-        <button className="btn" disabled={!n.name.trim()} onClick={add}><Plus />Salva cibo</button>
+        {ask
+          ? <AskGeneral food={ask} yes="Sì, tabella generale" no="No, solo mio elenco" onNo={() => keepPersonal(ask)}
+              onYes={async () => { const e = await onSaveGeneral(ask); if (!e) { setAsk(null); reset(); } return e; }} />
+          : <button className="btn" disabled={!n.name.trim()} onClick={save}><Plus />Salva cibo</button>}
+        {err && <div className="err" role="alert">{err}</div>}
         <div className="muted">Valori per la porzione scritta nel nome. Il cibo compare nella ricerca della Giornata.</div>
       </section>
       <section className="card">
@@ -37,9 +50,9 @@ export default function Foods({ foods, custom, update }: { foods: Preset[]; cust
         <div className="foodlist">
           {list.map((f, i) => (
             <div className="hit" key={i}>
-              <div className="t">{f.name}{mine.has(f) && <span className="tag">tuo</span>}
+              <div className="t">{f.name}{removable(f) && <span className="tag">tuo</span>}
                 <div className="k">{Math.round(f.kcal)} kcal · P {f.p} · C {f.c} · G {f.f}</div></div>
-              {mine.has(f) && <button className="rm" aria-label={`Elimina ${f.name}`} onClick={() => update(d => { d.custom = d.custom?.filter(x => x.name !== f.name); })}><X size={18} /></button>}
+              {removable(f) && <button className="rm" aria-label={`Elimina ${f.name}`} onClick={() => mine.has(f) ? update(d => { d.custom = d.custom?.filter(x => x.name !== f.name); }) : onDelGeneral(f)}><X size={18} /></button>}
             </div>
           ))}
         </div>

@@ -34,14 +34,14 @@ export default function WaterYear({ data }: { data: Data }) {
         <div className="yr" key={r.y}>
           <b className="num">{r.y}</b>
           <div className="ybar" role="img" aria-label={`${r.y}: ${p(r.ok, r.n)}% giorni con obiettivo raggiunto, ${p(r.flex, r.n)}% giorni flessibili`}>
-            <i style={{ width: p(r.ok, r.n) + '%', background: 'var(--ok)' }} />
+            <i style={{ width: p(r.ok, r.n) + '%', background: 'var(--ok-fill)' }} />
             <i style={{ width: p(r.flex, r.n) + '%', background: 'var(--carb)' }} />
           </div>
           <span>{p(r.ok, r.n)}%</span>
         </div>
       ))}
       <div className="muted" style={{ fontSize: '.85rem' }}>
-        <span className="dot" style={{ background: 'var(--ok)' }} /> obiettivo raggiunto <span className="dot" style={{ background: 'var(--carb)' }} /> giorno flessibile (tag). Conta fino a oggi.
+        <span className="dot" style={{ background: 'var(--ok-fill)' }} /> obiettivo raggiunto <span className="dot" style={{ background: 'var(--carb)' }} /> giorno flessibile (tag). Conta fino a oggi.
       </div>
     </section>
   );

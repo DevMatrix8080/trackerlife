@@ -14,9 +14,9 @@ export default function Nutrition({ foods, kgoal, fmax, pgoal, update }: Props) 
   const diff = Math.round(kgoal - t.kcal);
 
   const rows = [
-    { k: 'p', name: 'Proteine', g: t.p, kcal: mk.p, color: 'var(--protein)' },
-    { k: 'c', name: 'Carboidrati', g: t.c, kcal: mk.c, color: 'var(--carb)' },
-    { k: 'f', name: 'Grassi', g: t.f, kcal: mk.f, color: 'var(--fat)' },
+    { k: 'p', name: 'Proteine', g: t.p, kcal: mk.p, color: 'var(--p-protein)' },
+    { k: 'c', name: 'Carboidrati', g: t.c, kcal: mk.c, color: 'var(--p-carb)' },
+    { k: 'f', name: 'Grassi', g: t.f, kcal: mk.f, color: 'var(--p-fat)' },
   ];
 
   return (

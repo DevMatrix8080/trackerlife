@@ -9,9 +9,9 @@ import FoodTable from './FoodTable';
 import { proteinGoal } from '@/lib/tdee';
 import { ChevL, ChevR, Lock } from './Icons';
 
-type Props = { foods: Preset[]; data: Data; date: string; setDate: (d: string) => void; update: (fn: (d: Data) => void) => void };
+type Props = { foods: Preset[]; data: Data; date: string; setDate: (d: string) => void; update: (fn: (d: Data) => void) => void; onSaveGeneral: (p: Preset) => Promise<string | null> };
 
-export default function Today({ foods, data, date, setDate, update }: Props) {
+export default function Today({ foods, data, date, setDate, update, onSaveGeneral }: Props) {
   const day: Day = data.days[date] ?? emptyDay();
   const closed = !!day.closed;
   const edit = (fn: (d: Day) => void) => update(x => fn((x.days[date] ??= emptyDay())));
@@ -49,7 +49,7 @@ export default function Today({ foods, data, date, setDate, update }: Props) {
         <div className="col">
           {!closed && <button className="btn sec" style={{ width: '100%', marginBottom: 12 }} disabled={!prev.length}
             onClick={() => edit(d => { d.foods.push(...structuredClone(prev)); })}>Copia da ieri ({prev.length} cibi)</button>}
-          <fieldset disabled={closed}><FoodAdd foods={foods} data={data} date={date} update={update} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
+          <fieldset disabled={closed}><FoodAdd foods={foods} onSaveGeneral={onSaveGeneral} data={data} date={date} update={update} onAdd={(f: Food) => edit(d => { d.foods.push(f); })} /></fieldset>
           <FoodTable foods={day.foods} fmax={data.fmax} closed={closed}
             onRemove={i => edit(d => { d.foods.splice(i, 1); })}
             onFinish={() => edit(d => { d.closed = true; })}

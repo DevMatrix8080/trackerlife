@@ -27,7 +27,7 @@ Web app Next.js + React + TypeScript, export statico. Account e dati su Supabase
 - Temi chiaro e scuro con interruttore manuale (richiesto).
 
 ## Evidence on Hand
-Nessun logo, brand o contenuto esistente: nome "MyLife" soltanto. Nessun dato reale da mostrare oltre a quello inserito dall'utente.
+Nessun logo, brand o contenuto esistente: nome "AquaMacro" (ex MyLife). Nessun dato reale da mostrare oltre a quello inserito dall'utente.
 
 ## Product Principles
 1. Velocità prima di tutto: ogni azione frequente a un tocco sul telefono.

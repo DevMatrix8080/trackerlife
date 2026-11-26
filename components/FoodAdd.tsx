@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Data, Food, MEALS, Meal, emptyDay, freq, totals } from '@/lib/store';
 import { Plus, Search, X } from './Icons';
-import { Preset, searchFoods } from '@/lib/foods';
+import { Preset, hasFood, searchFoods } from '@/lib/foods';
+import AskGeneral from './AskGeneral';
 
 function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
   const [n, setN] = useState(1); // porzioni
@@ -16,13 +17,14 @@ function Result({ h, onAdd }: { h: Preset; onAdd: (f: Food) => void }) {
   );
 }
 
-type Props = { foods: Preset[]; data: Data; date: string; update: (fn: (d: Data) => void) => void; onAdd: (f: Food) => void };
+type Props = { foods: Preset[]; data: Data; date: string; update: (fn: (d: Data) => void) => void; onAdd: (f: Food) => void; onSaveGeneral: (p: Preset) => Promise<string | null> };
 
-export default function FoodAdd({ foods, data, date, update, onAdd }: Props) {
+export default function FoodAdd({ foods, data, date, update, onAdd, onSaveGeneral }: Props) {
   const [q, setQ] = useState('');
   const [meal, setMeal] = useState<Meal>(() => { const h = new Date().getHours(); return h < 10 ? 'colazione' : h < 12 ? 'spuntino_m' : h < 15 ? 'pranzo' : h < 18 ? 'spuntino_p' : 'cena'; });
   const [man, setMan] = useState({ name: '', kcal: '', p: '', c: '', f: '' });
   const [mname, setMname] = useState('');
+  const [ask, setAsk] = useState<Preset | null>(null); // cibo appena inserito a mano: chiede se metterlo nella tabella generale
   const used = freq(data);
   const byUse = (a: Preset, b: Preset) => (used.get(b.name) ?? 0) - (used.get(a.name) ?? 0);
   const hits = q.trim() ? searchFoods(foods, q).sort(byUse) : foods.filter(x => used.has(x.name)).sort(byUse).slice(0, 8);
@@ -32,7 +34,9 @@ export default function FoodAdd({ foods, data, date, update, onAdd }: Props) {
 
   function addManual() {
     if (!man.name.trim()) return;
-    onAdd({ meal, name: man.name.trim(), g: 0, kcal: +man.kcal || 0, p: +man.p || 0, c: +man.c || 0, f: +man.f || 0 });
+    const p = { name: man.name.trim(), kcal: +man.kcal || 0, p: +man.p || 0, c: +man.c || 0, f: +man.f || 0 };
+    onAdd({ meal, g: 0, ...p });
+    setAsk(hasFood(foods, p.name) ? null : p); // se esiste già in tabella non lo chiede
     setMan({ name: '', kcal: '', p: '', c: '', f: '' });
   }
   const set = (k: keyof typeof man) => (e: React.ChangeEvent<HTMLInputElement>) => setMan({ ...man, [k]: e.target.value });
@@ -81,6 +85,7 @@ export default function FoodAdd({ foods, data, date, update, onAdd }: Props) {
           <button className="btn" onClick={addManual} disabled={!man.name.trim()}><Plus />Aggiungi</button>
         </div>
       </details>
+      {ask && <AskGeneral food={ask} onNo={() => setAsk(null)} onYes={async () => { const e = await onSaveGeneral(ask); if (!e) setAsk(null); return e; }} />}
     </section>
   );
 }

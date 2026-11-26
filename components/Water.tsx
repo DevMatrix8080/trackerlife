@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Day, WTAGS } from '@/lib/store';
 import CountUp from './CountUp';
 import { Check, Drop, Dumbbell, Minus, Plus } from './Icons';
+import { markDrink } from '@/lib/reminders';
 
 type Props = { date: string; day: Day; goal: { ml: number; why: string }; edit: (fn: (d: Day) => void) => void };
 const CONFETTI = ['var(--aqua)', 'var(--carb)', 'var(--ok)', 'var(--fat)'];
@@ -25,6 +26,7 @@ export default function Water({ date, day, goal, edit }: Props) {
   const add = (ml: number) => {
     edit(d => { d.water = Math.max(0, d.water + ml); });
     if (ml > 0) {
+      markDrink();
       const id = Math.random();
       setFloats(f => [...f, { id, ml }]);
       setTimeout(() => setFloats(f => f.filter(x => x.id !== id)), 1000);
@@ -45,11 +47,15 @@ export default function Water({ date, day, goal, edit }: Props) {
       </div>
 
       <div className="gwrap">
+        <div className="ghead" aria-hidden="true">
+          <span>Progresso</span>
+          <b className={'gpct' + (done ? ' ok' : '')}><CountUp value={pct} />%</b>
+        </div>
         <div className={'gauge' + (done ? ' ok' : '')} role="progressbar" aria-label="Acqua bevuta" aria-valuemin={0} aria-valuemax={goal.ml} aria-valuenow={Math.min(day.water, goal.ml)}
           style={{ ['--w' as string]: Math.min(100, day.water / goal.ml * 100) + '%', ['--tick' as string]: 250 / goal.ml * 100 + '%' }}>
           <i />
-          <b className="gpct" aria-hidden="true"><CountUp value={pct} />%</b>
         </div>
+        <div className="gscale" aria-hidden="true"><span>0</span><span>{goal.ml / 2} ml</span><span>{goal.ml} ml</span></div>
         {burst > 0 && (
           <div className="burst" key={burst} aria-hidden="true">
             {Array.from({ length: 18 }, (_, i) => {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { authenticate } from '@/lib/cloud';
 import { pwChecks, pwScore } from '@/lib/password';
 import ThemeToggle from './ThemeToggle';
+import { BRAND } from '@/lib/brand';
 
 const LABELS = ['', 'Debole', 'Discreta', 'Buona', 'Ottima'];
 
@@ -25,9 +26,9 @@ export default function Auth() {
     <main className="auth">
       <div className="hero">
         <div className="row" style={{ justifyContent: 'space-between' }}><span /><ThemeToggle /></div>
-        <div className="word">My<b>Life</b></div>
+        <div className="word">{BRAND.a}<b>{BRAND.b}</b></div>
         <div className="ruler" />
-        <p>Acqua. Calorie. Macro.</p>
+        <p>{BRAND.tagline}</p>
       </div>
       <form className="panel" onSubmit={e => { e.preventDefault(); go(false); }}>
         <h2>Accedi</h2>

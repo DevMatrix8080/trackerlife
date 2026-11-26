@@ -10,10 +10,13 @@ import Profile from '@/components/Profile';
 import Weight from '@/components/Weight';
 import Week from '@/components/Week';
 import Backup from '@/components/Backup';
+import AppSettings from '@/components/AppSettings';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Camera, Drop, Dumbbell, History as HistoryIcon, List, Logout, User } from '@/components/Icons';
-import { Data, ls, loadData, today } from '@/lib/store';
-import { logout, onUser, pull, pullFoods, push } from '@/lib/cloud';
+import { Data, ls, loadData, today, waterGoal } from '@/lib/store';
+import { BRAND } from '@/lib/brand';
+import { useWaterReminders } from '@/lib/reminders';
+import { addFood, delFood, logout, onUser, pull, pullFoods, push } from '@/lib/cloud';
 import type { Preset } from '@/lib/foods';
 import { vt } from '@/lib/motion';
 
@@ -53,6 +56,25 @@ export default function Page() {
       return next;
     });
 
+  useWaterReminders(() => {
+    if (!data) return null;
+    const d = data.days[today()];
+    return { water: d?.water ?? 0, goal: waterGoal(today(), d?.train ?? false).ml };
+  });
+
+  // Tabella generale dei cibi (Supabase). Ritornano un messaggio d'errore oppure null.
+  const saveGeneral = async (p: Preset) => {
+    try {
+      const saved = await addFood(p);
+      setFoods(f => [...f, saved].sort((a, b) => a.name.localeCompare(b.name, 'it')));
+      return null;
+    } catch { return "Non riesco a salvare: sei offline? Hai eseguito l'aggiornamento in fondo a supabase.sql?"; }
+  };
+  const delGeneral = async (p: Preset) => {
+    if (p.id == null) return null;
+    try { await delFood(p.id); setFoods(f => f.filter(x => x.id !== p.id)); return null; } catch { return 'Non riesco a eliminare'; }
+  };
+
   if (!ready) return null;
   if (!user) return <Auth />;
   if (!data) return null;
@@ -62,7 +84,7 @@ export default function Page() {
   return (
     <div className="app">
       <header className="top">
-        <div className="brand"><Drop size={28} /><span>My<b>Life</b></span></div>
+        <div className="brand"><Drop size={28} /><span>{BRAND.a}<b>{BRAND.b}</b></span></div>
         <div className="top-actions">
           <span className="user">{user}</span>
           <ThemeToggle />
@@ -76,12 +98,12 @@ export default function Page() {
         ))}
       </nav>
 
-      {tab === 'today' && <Today foods={all} data={data} date={date} setDate={setDate} update={update} />}
+      {tab === 'today' && <Today foods={all} data={data} date={date} setDate={setDate} update={update} onSaveGeneral={saveGeneral} />}
       {tab === 'history' && <><Week data={data} /><WaterYear data={data} /><History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} /></>}
-      {tab === 'foods' && <Foods foods={foods} custom={data.custom ?? []} update={update} />}
+      {tab === 'foods' && <Foods foods={foods} custom={data.custom ?? []} update={update} onSaveGeneral={saveGeneral} onDelGeneral={delGeneral} />}
       {tab === 'photos' && <Photos data={data} update={update} />}
       {tab === 'weight' && <Weight data={data} update={update} />}
-      {tab === 'profile' && <><Profile data={data} update={update} /><Backup data={data} /></>}
+      {tab === 'profile' && <div className="stack"><Profile data={data} update={update} /><AppSettings /><Backup data={data} /></div>}
     </div>
   );
 }

@@ -1,84 +1,113 @@
-# MyLife — mappa completa del progetto
+# AquaMacro — mappa del progetto
 
-Leggi SOLO questo file per capire il progetto. Aggiornalo a ogni modifica rilevante.
+> **Per chi apre una nuova chat:** leggi SOLO questo file, non scorrere tutti i sorgenti. Apri un file solo quando devi modificarlo. Aggiorna questa mappa a ogni modifica rilevante (struttura, modello dati, setup). Il file `CLAUDE.md` rimanda qui.
 
 ## Cos'è
-Tracker personale (italiano, mobile-first) di **acqua, calorie, macro**. Login con nome utente + password. Account e dati **sincronizzati sul cloud (Supabase)**: stesse credenziali su PC e telefono. Sito statico su **GitHub Pages** (`/trackerlife`).
+Tracker personale (italiano, mobile-first, **PWA installabile**) di **acqua, calorie, macro**, con profilo TDEE, foto progressi cifrate e promemoria per bere. Login con nome utente + password; account e dati **sincronizzati su Supabase** (stesse credenziali su PC e telefono). Sito statico su **GitHub Pages** (`/trackerlife`).
+Nome visibile: **AquaMacro** (era "MyLife"). Si cambia in un solo punto: `lib/brand.ts` (+ `public/manifest.webmanifest`, `public/icon.svg`, `PROJECT.md`).
 
 ## Stack
 Next.js 16 (`output: 'export'`, statico) · React 19 · TypeScript · Supabase (Auth email/password + Postgres con RLS) · CSS puro (`app/globals.css`). Nessun backend proprio.
 
 ## Comandi
-- `npm run dev` — sviluppo
+- `npm run dev` — sviluppo (basePath vuoto, service worker NON registrato)
 - `npm run build` — `next build` + `scripts/csp.mjs` (inietta CSP nei file in `out/`)
+- `npm run icons` — rigenera le PNG della PWA da `public/icon.svg` (usa `sharp`, già presente con Next)
 - Deploy: push su `main` → `.github/workflows/pages.yml` costruisce e pubblica `out/`.
 
-## Struttura file
+## Mappa file
+### App e stile
 | File | Ruolo |
 |---|---|
-| `app/layout.tsx` | Font (Big Shoulders + Barlow), script anti-flash del tema, anti-clickjacking (nasconde la pagina se in iframe) |
-| `app/page.tsx` | Radice client. `onUser` (sessione Supabase) → `pull()` dati cloud (fallback cache locale) → stato `data`. `update(fn)` clona, salva in localStorage (cache) e fa `push()` su Supabase. Tab Giornata/Cronologia. Logout = `logout()` |
-| `app/globals.css` | Tutto lo stile. Variabili tema dark/light (`--bg --aqua --protein --carb --fat --ok`, pannelli `--p-*`). Animazioni, View Transitions, scroll-driven. In fondo: stile misuratore password (`.pwmeter`, `.pwbars`, `.pwlist`) |
-| `lib/store.ts` | Tipi `Food/Day/Data`, helper `ls` (localStorage), `today()`, `loadData(user)`, `waterGoal(date, train)`, `totals(foods)`. **Niente auth qui** |
-| `lib/cloud.ts` | Supabase: config (URL + anon key da incollare), `pullFoods()`, `authenticate(nome, pw, signup)`, `onUser(cb)`, `logout()` (pulisce cache locale), `pull()`, `push(data)` |
-| `lib/password.ts` | `PW_MIN=10`, `pwChecks`, `pwStrong` (≥10 car. + 3 requisiti su 4), `pwScore` (0-4) |
-| `lib/foods.ts` | Solo tipo `Preset` e `searchFoods(foods, q)` (cerca per parole, senza accenti/maiuscole). **I dati NON sono nel repo**: stanno nella tabella Supabase `foods` (RLS: lettura solo utenti loggati, nessuna scrittura dal client). Caricati con `supabase-foods.sql`, file locale gitignored (183 cibi, valori per la PORZIONE nel nome) |
-| `lib/motion.ts` | `vt(fn)` = View Transition con fallback; `reduced()` = prefers-reduced-motion |
-| `components/Auth.tsx` | Form accedi / crea account, mostra/nascondi password, misuratore robustezza animato |
-| `components/Today.tsx` | Vista giorno: navigazione date, Water, Nutrition, FoodAdd, FoodTable; giorno `closed` blocca i campi |
-| `components/Water.tsx` | Acqua vs obiettivo, spunta allenamento, storico 7 gg, festeggia al superamento |
-| `components/Nutrition.tsx` | Totali kcal/macro vs `kgoal` e `fmax` (grassi) |
-| `components/FoodAdd.tsx` | Ricerca live nei cibi caricati da Supabase dopo il login (`pullFoods`, campo porzioni) o inserimento manuale |
-| `components/FoodTable.tsx` | Tabella cibi, totali, "Giornata finita"/"Riapri" |
-| `components/History.tsx` | Cronologia anno → mese → giorno con medie |
-| `components/CountUp.tsx`, `Icons.tsx`, `ThemeToggle.tsx` | Numeri che scorrono, icone SVG, tema chiaro/scuro (salvato in localStorage `theme`) |
-| `scripts/csp.mjs` | Post-build: CSP in `<meta>` con hash SHA-256 degli script inline. `connect-src`: self, `*.supabase.co` |
-| `supabase.sql` | Tabelle `user_data` e `foods` + policy RLS (da eseguire nello SQL Editor) |
-| `supabase-foods.sql` | **Locale, gitignored.** INSERT dei cibi personali. Rigenerabile dalle righe `RAW` di una vecchia versione di `lib/foods.ts` (git history) |
-| `PRODUCT.md` | Brief di prodotto/design (Impeccable) |
+| `app/layout.tsx` | Font (Big Shoulders + Barlow), `<head>` con manifest/icone/apple-touch-icon/theme-color, script anti-flash del tema (aggiorna anche `theme-color`), anti-clickjacking, monta `PwaInit` |
+| `app/page.tsx` | Radice client. `onUser` → `pull()` dati cloud (fallback cache locale) → stato `data`; `pullFoods()` → stato `foods`. `update(fn)` clona, salva in localStorage e fa `push()`. Tab: Giornata, Cronologia, Cibi, Foto, Peso, Profilo. Contiene `saveGeneral`/`delGeneral` (tabella generale cibi) e chiama `useWaterReminders` |
+| `app/globals.css` | Tutto lo stile. **Token colore** in cima (vedi sotto). Animazioni, View Transitions, scroll-driven, misuratore password (`.pw*`), barra acqua (`.gauge`, `.ghead`, `.gscale`), box "tabella generale" (`.ask`) |
+### Componenti (`components/`)
+| File | Ruolo |
+|---|---|
+| `Auth.tsx` | Accedi / crea account, mostra password, misuratore robustezza |
+| `Today.tsx` | Vista giorno (con "Copia da ieri"): navigazione date, `Water`, `Nutrition`, `FoodAdd`, `FoodTable`; giorno `closed` blocca i campi |
+| `Water.tsx` | Acqua vs obiettivo: numero grande, barra progresso (percentuale sopra, scala 0/metà/obiettivo sotto), pulsanti +ml, tag giornata + descrizione, spunta allenamento, coriandoli al traguardo. Chiama `markDrink()` a ogni sorso |
+| `WaterYear.tsx` | Grafico annuale % giorni con obiettivo acqua raggiunto |
+| `Nutrition.tsx` | Pannello kcal/macro vs `kgoal`, `fmax`, proteine minime |
+| `FoodAdd.tsx` | Ricerca cibi (più usati in evidenza, `freq`), pasti salvati (`Data.meals`), porzioni, inserimento a mano. Dopo l'inserimento a mano chiede (`AskGeneral`) se aggiungerlo alla tabella generale |
+| `AskGeneral.tsx` | Box "Vuoi aggiungerlo alla tabella generale di tutti i tuoi cibi?" (Sì → `onYes` asincrono con errore inline, No) |
+| `Foods.tsx` | Tab Cibi: elenco completo + filtro; form "Aggiungi un tuo cibo": al salvataggio chiede **tabella generale** (Supabase) oppure **solo mio elenco** (`data.custom`). Elimina solo i cibi "tuo" |
+| `FoodTable.tsx` | Tabella mangiato per pasto, totali, "Giornata finita"/"Riapri" |
+| `History.tsx` | Cronologia anno → mese → giorno con medie |
+| `Profile.tsx` | Profilo TDEE/obiettivo (`lib/tdee.ts`) → imposta `kgoal` |
+| `AppSettings.tsx` | (tab Profilo) Installa app + promemoria acqua: permesso notifiche, orari, intervallo, "Prova notifica" |
+| `Weight.tsx` | Tab Peso: peso/vita (`Data.body`), grafico, andamento 28 gg, correzione kcal da applicare a mano |
+| `Week.tsx` | Riepilogo ultimi 7 giorni (in Cronologia) |
+| `Backup.tsx` | Export CSV / backup JSON (in Profilo) |
+| `Photos.tsx` | Foto progressi cifrate AES-256-GCM lato browser, diario, confronto |
+| `ThemeToggle.tsx` | Tema chiaro/scuro (localStorage `theme`); senza scelta manuale segue il sistema anche a runtime; aggiorna `theme-color` |
+| `PwaInit.tsx`, `CountUp.tsx`, `Icons.tsx` | Registra il service worker · numeri che scorrono · icone SVG (tratto 2px) |
+### Libreria (`lib/`)
+| File | Ruolo |
+|---|---|
+| `brand.ts` | `BRAND` (nome/tagline) e `BASE` (basePath per file in `public/`) |
+| `store.ts` | Tipi `Food/Day/Data`, `ls` (localStorage), `today()`, `loadData`, `waterGoal`, `totals` |
+| `cloud.ts` | Supabase: client (URL + publishable key, pubbliche), `authenticate`, `onUser`, `logout`, `pull/push` dati, `pullFoods` (con `id`, `own`), **`addFood`/`delFood`** (tabella generale), foto (`listPhotos/getPhoto/addPhoto/delPhotos`) |
+| `foods.ts` | Tipo `Preset` (`id?`, `own?`), `searchFoods`, `hasFood` (duplicati per nome) |
+| `reminders.ts` | Promemoria acqua: impostazioni (localStorage `reminders`), `notify` (via service worker, fallback `Notification`), hook `useWaterReminders` |
+| `pwa.ts` | `registerSW` (solo prod), `useInstall` (evento `beforeinstallprompt`, standalone, iOS) |
+| `crypto.ts` | AES-256-GCM + PBKDF2 per le foto | 
+| `tdee.ts` · `password.ts` · `motion.ts` | Mifflin-St Jeor/obiettivi · regole password · View Transition `vt`, `reduced` |
+### PWA (`public/`, copiati in `out/`)
+| File | Ruolo |
+|---|---|
+| `manifest.webmanifest` | Nome, colori, icone; URL **relativi** (`./`) così funziona con basePath `/trackerlife` e in locale |
+| `sw.js` | Service worker: shell offline (navigazioni network-first, asset stale-while-revalidate), **solo same-origin** (mai Supabase/dati); `notificationclick` riapre l'app. Per forzare l'aggiornamento della cache cambia `CACHE` |
+| `icon.svg` | Icona 4096×4096 (goccia + livello d'acqua + 3 barre macro proteine/carbo/grassi). Sorgente di tutte le PNG |
+| `icon-192/512.png`, `icon-maskable-512.png`, `apple-touch-icon.png` | Generate da `npm run icons` |
+### Altro
+`scripts/csp.mjs` (CSP in `<meta>` con hash degli script inline; `connect-src`: self + `*.supabase.co`) · `scripts/icons.mjs` · `supabase.sql` (schema + RLS) · `supabase-foods.sql` (**locale, gitignored**: cibi iniziali) · `PRODUCT.md` (brief prodotto) · `.github/` (Pages + Dependabot)
 
 ## Modello dati
 ```ts
-Food = { name, g, kcal, p, c, f }
-Day  = { water: ml, train: boolean, foods: Food[], closed?: boolean }
-Data = { days: Record<'YYYY-MM-DD', Day>, kgoal: 2500, fmax: 60 }
+Food   = { name, g, kcal, p, c, f, meal? }
+Day    = { water: ml, train, foods: Food[], closed?, wtag?, wnote? }   // wtag: flex|sick|trip|busy
+Data   = { days: Record<'YYYY-MM-DD', Day>, kgoal, fmax, profile?, custom?: Preset[], meals?, body?, vault?: {salt, check} }
+Preset = { name, kcal, f, c, p, id?, own? }   // valori per la PORZIONE scritta nel nome
 ```
-Cloud: tabella `user_data` (`id` = uid utente, `d` jsonb = Data). Cache locale: `localStorage['data:<nome>']`.
-Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
+- Tabella `user_data` (`id` = uid, `d` jsonb = Data) · cache `localStorage['data:<nome>']`.
+- **Cibi**: due livelli. (1) **Tabella generale** = tabella Supabase `foods`: righe iniziali con `uid` nullo (visibili a tutti gli utenti loggati) + righe aggiunte dal sito con `uid` = autore (visibili/cancellabili solo da lui). (2) **Elenco personale** = `Data.custom` (dentro `user_data`). La ricerca unisce `custom` + `foods`.
+- Obiettivo acqua: allenamento 3000 ml; altrimenti giu–set 3000, resto 2500.
+- localStorage per dispositivo (NON sincronizzato): `theme`, `reminders`, `lastdrink`, `lastremind`, `foods` (cache), `data:<nome>`.
+
+## Colori light/dark (regole da rispettare)
+Token in cima a `globals.css`, due set (`:root[data-theme=dark|light]`):
+- **Fuori dai pannelli** (su `--surface`/`--bg`): `--aqua`, `--ok-fill`, `--carb`, `--protein`, `--fat` sono **riempimenti** (testo scuro sopra); per il **testo** usare `--aqua-text`, `--ok`, `--err`; focus = `--focus`.
+- **Dentro `.panel`** (carta chiara nel tema scuro, inchiostro nel tema chiaro): usare solo i token `--p-*` (`--p-bg --p-ink --p-muted --p-line --p-aqua --p-protein --p-carb --p-fat --p-ok`), tarati sul fondo del pannello. Mai `--carb`/`--ok` dentro un pannello.
+- Mai testo sopra la barra acqua (contrasto variabile): la percentuale sta sopra la barra.
+
+## PWA e notifiche
+- Installabile da mobile/desktop (Chrome: pulsante in Profilo → "Installa" o menu browser; iOS: Condividi → Aggiungi a Home).
+- Service worker registrato solo in produzione (`registerSW`).
+- **Promemoria per bere**: nessun server/push. Il controllo gira ogni 30 s nel browser finché l'app/scheda è aperta o in background. Notifica solo se: attivo, permesso concesso, pagina non in primo piano, dentro la fascia oraria, obiettivo non raggiunto, e passati X minuti dall'ultimo sorso/promemoria. **Limite**: se il sistema sospende/chiude l'app (tipico su telefono) non arriva nulla. Per notifiche garantite serve Web Push (VAPID + funzione Supabase Edge + cron): non implementato.
 
 ## Auth (flusso)
-1. Nome utente `^[a-z0-9_.-]{3,20}$` → email finta `<nome>@mylife.app` → Supabase Auth email/password.
-2. **Creazione account**: password ≥10 caratteri + 3 requisiti su 4 (maiuscole+minuscole, numero, simbolo), non tutta uguale. Login: nessun minimo (non blocca chi ha già account).
-3. Login → `pull()`. Se il documento cloud non esiste, carica i dati locali del browser (migrazione). Offline → usa cache.
-4. Logout → cancella `data:*`, `foods`, `users`, `session`, `locks` da localStorage e `signOut`.
+1. Nome utente `^[a-z0-9_.-]{3,20}$` → email finta `<nome>@mylife.app` (dominio storico, **non cambiare**: romperebbe gli account) → Supabase Auth.
+2. Creazione account: password ≥10 caratteri + 3 requisiti su 4. Login: nessun minimo.
+3. Login → `pull()`; se il documento cloud non esiste carica i dati locali. Offline → cache.
+4. Logout → cancella `data:*`, `foods`, `users`, `session`, `locks` da localStorage e `signOut`. (Le impostazioni `theme`/`reminders` restano: sono del dispositivo.)
 
 ## Sicurezza (cosa c'è)
-- Password mai nel codice: hash/rate-limit gestiti da Supabase Auth (rate limit integrato).
-- Postgres RLS: solo il proprietario legge/scrive la propria riga; forma e dimensione validate da CHECK; nessun delete; anon revocato (`supabase.sql`).
-- CSP stretta (no script inline non hashati, `object-src 'none'`, `base-uri 'none'`, `form-action 'self'`), `referrer no-referrer`, anti-iframe.
-- Messaggi d'errore uniformi (`Credenziali errate`), nessuna enumerazione utenti dal client.
-- Nessun `dangerouslySetInnerHTML` con dati utente (solo lo script del tema, statico).
+- Password gestite da Supabase Auth. RLS su tutte le tabelle: `user_data` solo proprietario; `photos` solo proprietario (testo cifrato); `foods` lettura `uid is null or uid = auth.uid()`, insert/delete solo righe proprie, nessun update; vincoli di forma/dimensione (CHECK).
+- CSP stretta (hash script inline, `object-src 'none'`, `base-uri 'none'`, `form-action 'self'`), `referrer no-referrer`, anti-iframe. Il service worker è same-origin e non mette in cache dati utente.
+- Nessun `dangerouslySetInnerHTML` con dati utente (solo script tema statico).
 
 ## Setup Supabase (una tantum)
-1. supabase.com → New project (gratis).
-2. SQL Editor → incolla `supabase.sql` → Run.
-3. Authentication → Sign In / Providers → Email: **disattiva "Confirm email"** (gli utenti hanno email finta), **Minimum password length = 10**, attiva "Prevent use of leaked passwords" se disponibile.
-4. Authentication → URL Configuration: Site URL = `https://<utente>.github.io/trackerlife`.
-5. SQL Editor → incolla `supabase-foods.sql` (tuo file locale) → Run: carica i cibi.
-6. Project Settings → API Keys: copia **Project URL** e **publishable key** (o legacy anon) in `lib/cloud.ts` (riga `createClient(...)`). Mai la `service_role` key.
+1. supabase.com → New project. 2. SQL Editor → incolla `supabase.sql` → Run (se il DB esiste già, esegui solo l'ultimo blocco **"Aggiornamento: aggiungere cibi alla tabella generale"**: senza, "Sì, aggiungi" fallisce con errore). 3. Auth → Email: disattiva "Confirm email", min password 10. 4. URL Configuration: Site URL = `https://<utente>.github.io/trackerlife`. 5. SQL Editor → `supabase-foods.sql` (file locale) → Run. 6. URL + publishable key sono già in `lib/cloud.ts`. Mai la `service_role` key.
 
 ## Limiti noti / shortcut
-- Errori di rete su `push` sono ignorati (la cache locale tiene i dati; si risincronizza al salvataggio successivo). Conflitto multi-dispositivo: vince l'ultimo salvataggio (intero documento).
-- Account vecchi creati solo in localStorage NON esistono nel cloud: vanno ricreati.
-- Il minimo password di creazione è applicato solo dal client finché non si imposta il criterio in console.
+- Errori di rete su `push` ignorati (cache locale; si risincronizza al salvataggio dopo). Multi-dispositivo: vince l'ultimo salvataggio (documento intero).
+- Foto: nessuna miniatura/cache, ogni vista riscarica (~200 KB).
+- Il minimo password di creazione è applicato solo dal client finché non si imposta in console Supabase.
+- Promemoria acqua non garantiti con app chiusa (vedi sopra).
 
 ## Cronologia modifiche
-1. MyLife base (Next.js, localStorage).
-2. Sicurezza: CSP, anti brute-force locale, deploy GitHub Pages.
-3. Animazioni: View Transitions, CountUp, effetto liquido, scroll-driven.
-4. **Sync multi-dispositivo**: prima Firebase, poi sostituito da Supabase (`lib/cloud.ts`, `supabase.sql`); rimosso auth locale PBKDF2 da `store.ts`; CSP aperta a `*.supabase.co`.
-5. **Password forte in creazione** con misuratore animato (`lib/password.ts`, `Auth.tsx`, CSS `.pw*`); logout pulisce cache; `supabase.sql` con RLS e validazione.
-6. Ricerca cibi: solo elenco locale, nessuna chiamata esterna.
-7. Elenco cibi riallineato a `Food_excel_it.csv` (stessi valori del CSV precedente; nessun cibo vecchio rimasto).
-8. **Cibi nascosti al pubblico**: spostati da `lib/foods.ts` (bundle JS pubblico) a tabella Supabase `foods` con RLS; `.history/` e `supabase-foods.sql` in `.gitignore`.
-9. **Funzioni d'uso quotidiano**: cibi "più usati" in ricerca (`freq` in `store.ts`), pasti salvati (`Data.meals`, in `FoodAdd.tsx`), "Copia da ieri" (`Today.tsx`), tab **Peso** (`Weight.tsx`, `Data.body`: peso/vita, grafico, andamento a 28 gg e correzione kcal da applicare a mano), riepilogo 7 giorni in Cronologia (`Week.tsx`), export CSV/backup JSON in Profilo (`Backup.tsx`). Tutto dentro il jsonb `user_data.d`: nessuna modifica a `supabase.sql`.
+1. MyLife base (localStorage) → 2. CSP e deploy Pages → 3. Animazioni → 4. Sync Supabase → 5. Password forte → 6-8. Cibi da CSV, poi spostati su tabella Supabase privata → 9. Profilo TDEE, pasti, foto cifrate con diario/confronto, tag e descrizione idratazione, grafico annuale acqua.
+10. Funzioni d'uso quotidiano: cibi più usati, pasti salvati, copia da ieri, tab Peso, riepilogo settimanale, export (tutto dentro il jsonb `user_data.d`). README rimosso dal repo.
+11. **Rebrand AquaMacro**, nuova icona SVG 4K + PNG, **PWA** (manifest, service worker, installazione), **promemoria acqua** con notifiche, **barra acqua ridisegnata**, **sistema colori light/dark** riordinato (token `--p-*`, `--ok-fill`, `--err`, `--focus`), **"aggiungi alla tabella generale"** (cibi con `uid`, RLS insert/delete propri).

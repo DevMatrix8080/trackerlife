@@ -27,3 +27,4 @@ export const Lock = svg(<><rect x="5" y="11" width="14" height="9" rx="2" /><pat
 export const Camera = svg(<><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></>);
 export const User = svg(<><circle cx="12" cy="8" r="4" /><path d="M4 20a8 8 0 0 1 16 0" /></>);
 export const List = svg(<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />);
+export const Download = svg(<path d="M12 4v11M7 11l5 5 5-5M5 20h14" />);

@@ -52,3 +52,19 @@ create policy ph_insert on public.photos for insert to authenticated with check 
 create policy ph_delete on public.photos for delete to authenticated using (auth.uid() = uid);
 revoke all on public.photos from anon;
 grant select, insert, delete on public.photos to authenticated;
+
+-- ===== Aggiornamento: aggiungere cibi alla tabella generale dal sito (esegui questo blocco se hai già il resto) =====
+-- Ogni riga aggiunta dal sito è legata a chi l'ha creata (uid): la vede e la cancella solo lui.
+-- I cibi caricati da te con supabase-foods.sql hanno uid nullo e restano visibili a tutti gli utenti loggati.
+alter table public.foods add column if not exists uid uuid default auth.uid() references auth.users(id) on delete cascade;
+alter table public.foods drop constraint if exists foods_ok;
+alter table public.foods add constraint foods_ok check (
+  length(name) between 1 and 120 and kcal between 0 and 5000 and f between 0 and 1000 and c between 0 and 1000 and p between 0 and 1000
+) not valid; -- not valid: le righe vecchie non vengono ricontrollate, le nuove sì
+drop policy if exists foods_read on public.foods;
+drop policy if exists foods_insert on public.foods;
+drop policy if exists foods_delete on public.foods;
+create policy foods_read on public.foods for select to authenticated using (uid is null or uid = auth.uid());
+create policy foods_insert on public.foods for insert to authenticated with check (uid = auth.uid());
+create policy foods_delete on public.foods for delete to authenticated using (uid = auth.uid());
+grant insert, delete on public.foods to authenticated;
