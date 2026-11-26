@@ -12,7 +12,7 @@ export default function FoodTable({ foods, fmax, closed, onRemove, onFinish, onR
       <div className="rule-xl" />
       {!foods.length ? <div className="empty">Ancora nessun alimento. Cercane uno e aggiungilo.</div> : (
         <div className="scroll">
-          <table>
+          <table className="foodt">
             <thead><tr><th>Alimento</th><th>g</th><th>kcal</th><th>P</th><th>C</th><th>G</th><th><span className="sr">Rimuovi</span></th></tr></thead>
             <tbody>
               {[...MEALS, ['', 'Senza pasto'] as const].map(([m, label]) => {

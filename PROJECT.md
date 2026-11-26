@@ -82,6 +82,12 @@ Token in cima a `globals.css`, due set (`:root[data-theme=dark|light]`):
 - **Dentro `.panel`** (carta chiara nel tema scuro, inchiostro nel tema chiaro): usare solo i token `--p-*` (`--p-bg --p-ink --p-muted --p-line --p-aqua --p-protein --p-carb --p-fat --p-ok`), tarati sul fondo del pannello. Mai `--carb`/`--ok` dentro un pannello.
 - Mai testo sopra la barra acqua (contrasto variabile): la percentuale sta sopra la barra.
 
+## Mobile (regole)
+- Mai richiedere la "modalità desktop": nessuna pagina deve avere scroll orizzontale (`html,body{overflow-x:clip}`).
+- **Pagine**: sotto 860 px la barra schede in basso è una striscia scorrevole (la scheda attiva si centra da sola) e si cambia pagina anche con **swipe orizzontale** sul contenuto (`<main className="pages">` in `page.tsx`, soglia 70 px, solo se il gesto è quasi orizzontale). Lo swipe è ignorato su `.scroll`, input, `.foodlist`, svg, `.noswipe`. La transizione scorre in base alla direzione (`data-dir` su `<html>`).
+- **Tabelle**: compatte, entrano nei ~350 px senza scorrere; la colonna "g" di `FoodTable` (`.foodt`) è nascosta su mobile. Nuove tabelle: tenere ≤ 7 colonne corte o usare `.scroll`.
+- Regole CSS mobile in fondo a `globals.css` (blocco "Mobile").
+
 ## PWA e notifiche
 - Installabile da mobile/desktop (Chrome: pulsante in Profilo → "Installa" o menu browser; iOS: Condividi → Aggiungi a Home).
 - Service worker registrato solo in produzione (`registerSW`).
@@ -110,4 +116,5 @@ Token in cima a `globals.css`, due set (`:root[data-theme=dark|light]`):
 ## Cronologia modifiche
 1. MyLife base (localStorage) → 2. CSP e deploy Pages → 3. Animazioni → 4. Sync Supabase → 5. Password forte → 6-8. Cibi da CSV, poi spostati su tabella Supabase privata → 9. Profilo TDEE, pasti, foto cifrate con diario/confronto, tag e descrizione idratazione, grafico annuale acqua.
 10. Funzioni d'uso quotidiano: cibi più usati, pasti salvati, copia da ieri, tab Peso, riepilogo settimanale, export (tutto dentro il jsonb `user_data.d`). README rimosso dal repo.
-11. **Rebrand AquaMacro**, nuova icona SVG 4K + PNG, **PWA** (manifest, service worker, installazione), **promemoria acqua** con notifiche, **barra acqua ridisegnata**, **sistema colori light/dark** riordinato (token `--p-*`, `--ok-fill`, `--err`, `--focus`), **"aggiungi alla tabella generale"** (cibi con `uid`, RLS insert/delete propri).
+11. Mobile: barra schede scorrevole + swipe tra pagine, tabelle compatte senza scroll laterale.
+12. **Rebrand AquaMacro**, nuova icona SVG 4K + PNG, **PWA** (manifest, service worker, installazione), **promemoria acqua** con notifiche, **barra acqua ridisegnata**, **sistema colori light/dark** riordinato (token `--p-*`, `--ok-fill`, `--err`, `--focus`), **"aggiungi alla tabella generale"** (cibi con `uid`, RLS insert/delete propri).

@@ -327,3 +327,36 @@ td.mealrow{text-align:left;padding-top:14px;font:800 .95rem/1 var(--f-d);text-tr
 .ask{display:grid;gap:10px;margin-top:14px;padding:14px;border-radius:12px;background:var(--bg);border:2px solid var(--aqua-text);animation:rise .5s var(--ease) backwards}
 .ask .row .btn{flex:1;height:44px;font-size:1rem;padding:0 10px;text-align:center}
 .form .switch{display:flex;color:var(--text);font-size:1rem}
+
+/* ===== Mobile: pagine a scorrimento, barra schede scorrevole, tabelle senza scroll laterale ===== */
+html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
+.app{min-width:0}
+.pages{min-height:60vh;touch-action:pan-y pinch-zoom}
+.scroll,.foodlist{touch-action:pan-x pan-y}
+@media(max-width:859px){
+  .tabs{display:flex;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:1 0 auto;min-width:84px;padding:0 12px;font-size:.8rem;scroll-snap-align:center;white-space:nowrap}
+  .app{padding-left:12px;padding-right:12px}
+  .top{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}
+  /* tabelle compatte: si leggono intere senza scorrere di lato */
+  table{font-size:.92rem}
+  th{font-size:.72rem;letter-spacing:.04em;padding:8px 2px}
+  td{padding:9px 2px}
+  td.name{max-width:none;min-width:0}
+  tfoot td{font-size:1rem}
+  .panel{padding:14px 12px}
+  .foodt th:nth-child(2),.foodt td:nth-child(2){display:none} /* colonna "g" del cibo: quasi sempre vuota */
+  .mgrid{grid-template-columns:repeat(2,1fr)}
+  .yr{grid-template-columns:44px 1fr 42px;gap:8px}
+}
+/* transizione tra pagine con direzione */
+@keyframes slide-in-next{from{opacity:0;transform:translateX(36px)}}
+@keyframes slide-in-prev{from{opacity:0;transform:translateX(-36px)}}
+@keyframes slide-out-next{to{opacity:0;transform:translateX(-24px)}}
+@keyframes slide-out-prev{to{opacity:0;transform:translateX(24px)}}
+:root[data-dir="next"]::view-transition-new(root){animation:slide-in-next .38s var(--ease) both}
+:root[data-dir="next"]::view-transition-old(root){animation:slide-out-next .22s ease both}
+:root[data-dir="prev"]::view-transition-new(root){animation:slide-in-prev .38s var(--ease) both}
+:root[data-dir="prev"]::view-transition-old(root){animation:slide-out-prev .22s ease both}
+@media(prefers-reduced-motion:reduce){:root[data-dir]::view-transition-new(root),:root[data-dir]::view-transition-old(root){animation:none!important}}

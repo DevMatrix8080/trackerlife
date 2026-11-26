@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Auth from '@/components/Auth';
 import Today from '@/components/Today';
 import History from '@/components/History';
@@ -20,13 +20,33 @@ import { addFood, delFood, logout, onUser, pull, pullFoods, push } from '@/lib/c
 import type { Preset } from '@/lib/foods';
 import { vt } from '@/lib/motion';
 
+const TABS = [['today', Drop, 'Giornata'], ['history', HistoryIcon, 'Cronologia'], ['foods', List, 'Cibi'], ['photos', Camera, 'Foto'], ['weight', Dumbbell, 'Peso'], ['profile', User, 'Profilo']] as const;
+type Tab = (typeof TABS)[number][0];
+// Dove NON far partire lo swipe tra pagine: tabelle scorrevoli, campi, elenchi, grafici (hanno il loro gesto).
+const NO_SWIPE = '.scroll,input,textarea,select,.foodlist,svg,.noswipe,[role="slider"]';
+
 export default function Page() {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<string | null>(null);
   const [data, setData] = useState<Data | null>(null);
   const [foods, setFoods] = useState<Preset[]>([]);
   const [date, setDate] = useState(today());
-  const [tab, setTab] = useState<'today' | 'history' | 'foods' | 'photos' | 'weight' | 'profile'>('today');
+  const [tab, setTab] = useState<Tab>('today');
+  const touch = useRef<{ x: number; y: number } | null>(null);
+
+  // Cambia pagina con direzione (la transizione scorre da destra se vai avanti, da sinistra se torni indietro).
+  const goTab = (k: Tab) => {
+    const dir = TABS.findIndex(t => t[0] === k) - TABS.findIndex(t => t[0] === tab);
+    if (!dir) return;
+    const root = document.documentElement;
+    root.dataset.dir = dir > 0 ? 'next' : 'prev';
+    const t = vt(() => setTab(k));
+    (t ? t.finished : Promise.resolve()).finally(() => { delete root.dataset.dir; });
+    window.scrollTo({ top: 0 });
+  };
+  const swipe = (dx: number) => { const i = TABS.findIndex(t => t[0] === tab) + (dx < 0 ? 1 : -1); if (TABS[i]) goTab(TABS[i][0]); };
+  // La scheda attiva resta visibile nella barra scorrevole.
+  useEffect(() => { document.querySelector('.tab[aria-current]')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, [tab, user, data]);
 
   useEffect(() => onUser(u => { setUser(u); setReady(true); }), []);
   useEffect(() => {
@@ -93,17 +113,26 @@ export default function Page() {
       </header>
 
       <nav className="tabs" aria-label="Sezioni">
-        {([['today', Drop, 'Giornata'], ['history', HistoryIcon, 'Cronologia'], ['foods', List, 'Cibi'], ['photos', Camera, 'Foto'], ['weight', Dumbbell, 'Peso'], ['profile', User, 'Profilo']] as const).map(([k, Icon, l]) => (
-          <button key={k} className="tab" aria-current={tab === k ? 'page' : undefined} onClick={() => vt(() => setTab(k))}><Icon />{l}</button>
+        {TABS.map(([k, Icon, l]) => (
+          <button key={k} className="tab" aria-current={tab === k ? 'page' : undefined} onClick={() => goTab(k)}><Icon />{l}</button>
         ))}
       </nav>
 
+      <main className="pages"
+        onTouchStart={e => { const t = e.touches[0]; touch.current = (e.target as HTMLElement).closest(NO_SWIPE) ? null : { x: t.clientX, y: t.clientY }; }}
+        onTouchEnd={e => {
+          const s = touch.current; touch.current = null;
+          if (!s) return;
+          const t = e.changedTouches[0], dx = t.clientX - s.x, dy = t.clientY - s.y;
+          if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) swipe(dx);
+        }}>
       {tab === 'today' && <Today foods={all} data={data} date={date} setDate={setDate} update={update} onSaveGeneral={saveGeneral} />}
       {tab === 'history' && <><Week data={data} /><WaterYear data={data} /><History data={data} open={d => vt(() => { setDate(d); setTab('today'); })} /></>}
       {tab === 'foods' && <Foods foods={foods} custom={data.custom ?? []} update={update} onSaveGeneral={saveGeneral} onDelGeneral={delGeneral} />}
       {tab === 'photos' && <Photos data={data} update={update} />}
       {tab === 'weight' && <Weight data={data} update={update} />}
       {tab === 'profile' && <div className="stack"><Profile data={data} update={update} /><AppSettings /><Backup data={data} /></div>}
+      </main>
     </div>
   );
 }
